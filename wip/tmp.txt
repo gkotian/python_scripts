@@ -1,0 +1,15 @@
+// Non-selective imports
+
+import package.Module1;
+import package.Module1, package.Module2;
+import package.Module1;
+
+import package.ModuleX,
+       package.Module1;
+
+import package.Module1,
+       package.ModuleX,
+       package.Module2;
+
+import package.Module1,
+       package.ModuleX;

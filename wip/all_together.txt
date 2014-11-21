@@ -1,0 +1,43 @@
+// Non-selective imports
+
+import package.ModuleX;
+
+import package.ModuleX, package.Module1;
+
+import package.Module1, package.ModuleX, package.Module2;
+
+import package.Module1, package.ModuleX;
+
+import package.ModuleX,
+       package.Module1;
+
+import package.Module1,
+       package.ModuleX,
+       package.Module2;
+
+import package.Module1,
+       package.ModuleX;
+
+// Selective imports
+
+import package.Module:symbolX;
+import package.Module : symbolX;
+import package.Module : symbolX, symbol1;
+import package.Module : symbol1, symbolX, symbol2;
+import package.Module : symbol1, symbolX;
+import package.Module : symbolX,
+                        symbol1;
+import package.Module : symbol1,
+                        symbolX,
+                        symbol2;
+import package.Module : symbol1,
+                        symbolX;
+
+// Private imports
+
+import sea.whal.tooth.Hair;
+
+line 3
+line 4
+line 5
+
