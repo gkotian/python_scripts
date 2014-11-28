@@ -1,0 +1,3 @@
+To remove fluff:
+
+    $> sed -i 's/\* import of '\''\(.*\)'\'' could probably be removed/\1/g' imports_cleanup.txt
