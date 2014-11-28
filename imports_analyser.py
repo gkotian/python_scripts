@@ -9,11 +9,13 @@ import subprocess
 import shutil
 import sys
 import tempfile
+import time
 
 def compile(filename):
     with open(os.devnull, 'w') as devnull:
         # return_code = subprocess.call(["dmd1", "-c", "-o-", file_orig], stdout=devnull, stderr=devnull)
-        return_code = subprocess.call(["gdc", "-c", "-o", "/dev/null", filename], stdout=devnull, stderr=devnull)
+        # return_code = subprocess.call(["gdc", "-c", "-o", "/dev/null", filename], stdout=devnull, stderr=devnull)
+        return_code = subprocess.call(["gdc", "-I/home/gautam/play/vibe.d/source", "-c", "-o", "/dev/null", filename], stdout=devnull, stderr=devnull)
 
     return return_code
 
@@ -262,6 +264,25 @@ def analyse_file(file_orig, tmp_directory):
 
     return errors
 
+def update_progress(progress):
+    bar_len = 80 # Modify this to change the length of the progress bar
+
+    if not isinstance(progress, float):
+        return
+
+    if progress < 0:
+        progress = 0
+    elif progress >= 1:
+        progress = 1
+
+    block = int(round(bar_len * progress))
+    text = "Status: [{0}] {1}%".format( "="*(block-1) + ">" + " "*(bar_len-block-1), int(progress*100))
+
+    sys.stdout.write("\r")
+    sys.stdout.write("\033[K") # Clear to the end of line
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
 cwd = os.getcwd()
 
 if not os.path.isdir(cwd + "/src"):
@@ -274,25 +295,37 @@ for root, subdirs, filenames in os.walk(cwd + "/src"):
     for filename in fnmatch.filter(filenames, "*.d"):
         files.append(os.path.join(root, filename))
 
-if (len(files) == 0):
+total_files = len(files)
+
+if (total_files == 0):
     print "No D files found under '" + cwd + "/src'. Aborting."
     sys.exit(2)
 
-print "Analysing " + str(len(files)) + " D files in '" + cwd + "/src'"
+print "Analysing " + str(total_files) + " D files in '" + cwd + "/src'"
 print ""
 
 tmp_directory = tempfile.mkdtemp()
 
+files_done = 0
+
 for f in files:
+    update_progress(files_done / float(total_files))
+
     errors = set()
 
     errors = analyse_file(f, tmp_directory)
 
+    files_done += 1
+
     if (len(errors)):
+        sys.stdout.write("\r")
+        sys.stdout.write("\033[K") # Clear to the end of line
+        sys.stdout.flush()
         print f + ":"
         for e in errors:
             print e
         print ""
 
+print ""
 shutil.rmtree(tmp_directory)
 
