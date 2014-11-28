@@ -4,11 +4,12 @@ import argparse
 import fnmatch
 import os
 import re
+import subprocess
 import shutil
 import sys
 import tempfile
 
-def search_and_delete_symbol(symbol, filename):
+def search_and_delete_symbol_import(symbol, filename):
     tmp_file_tuple = tempfile.mkstemp()
     tmp_file = tmp_file_tuple[1]
 
@@ -45,16 +46,20 @@ def search_and_delete_symbol(symbol, filename):
 
     shutil.move(tmp_file, filename)
 
-def search_and_delete_line(deletion_identifier, filename):
+def search_and_delete_first_import(imp, skip_count, filename):
     tmp_file_tuple = tempfile.mkstemp()
     tmp_file = tmp_file_tuple[1]
 
     with open(filename, 'r') as in_file, open(tmp_file, 'w') as out_file:
-        found_once = False
+        done = False
 
         for line in in_file:
-            if (not found_once) and (deletion_identifier in line):
-                found_once = True
+            if (not done) and (imp in line):
+                if (skip_count > 0):
+                    skip_count -= 1
+                    out_file.write(line);
+                else:
+                    done = True
             else:
                 out_file.write(line);
 
@@ -84,9 +89,7 @@ def gather_symbols(line):
 
     return symbols
 
-def analyse_file(filename, tmp_directory):
-
-    write_mode = False if tmp_directory is 'dummy' else True
+def analyse_file(file_orig, tmp_directory):
 
     imports = []
     errors = set()
@@ -94,20 +97,16 @@ def analyse_file(filename, tmp_directory):
     in_multiline_comment = False
     in_import_stmt = False
 
-    symbols = []
+    imported_symbols = []
     symbols_seen = set()
 
-    if (write_mode):
-        # Make a copy of the file so that it can be reverted
-        file_copy = tmp_directory + '/file_copy'
-        shutil.copyfile(filename, file_copy)
+    # Make a copy of the file
+    file_copy = tmp_directory + '/file_copy'
+    shutil.copyfile(file_orig, file_copy)
 
-    with open(filename, 'r') as in_file:
+    with open(file_copy, 'r') as in_file, open(file_orig, 'w') as out_file:
         line_num = 0
         skip_line = False
-
-        if (write_mode):
-            out_file = open(file_copy, 'w')
 
         for line in in_file:
             line_num += 1
@@ -117,27 +116,23 @@ def analyse_file(filename, tmp_directory):
             line = line.strip()
 
             if (len(line) == 0):
-                if (write_mode):
-                    out_file.write(orig_line)
+                out_file.write(orig_line)
                 continue
 
             if (line.endswith("*/")):
                 in_multiline_comment = False
 
             if ( in_multiline_comment ):
-                if (write_mode):
-                    out_file.write(orig_line)
+                out_file.write(orig_line)
                 continue
 
             if (line.startswith("//")):
-                if (write_mode):
-                    out_file.write(orig_line)
+                out_file.write(orig_line)
                 continue
 
             if (line.startswith("/*")):
                 in_multiline_comment = True
-                if (write_mode):
-                    out_file.write(orig_line)
+                out_file.write(orig_line)
                 continue
 
             if "import" in line:
@@ -151,8 +146,7 @@ def analyse_file(filename, tmp_directory):
                 if (split_count == 1):
                     if (three_parts[0] == "import"):
                         in_import_stmt = True
-                    if (write_mode):
-                        out_file.write(orig_line)
+                    out_file.write(orig_line)
                     continue
                 else:
                     if (three_parts[0] == "import"):
@@ -162,66 +156,87 @@ def analyse_file(filename, tmp_directory):
                         in_import_stmt = True
                         line = "" if (split_count == 2) else three_parts[2]
                         if (three_parts[0] == "private"):
-                            if (write_mode):
-                                rex = re.compile(r'private\s+')
-                                orig_line = rex.sub('', orig_line)
-                            else:
-                                errors.add("    * line " + str(line_num) + ": private import found")
+                            rex = re.compile(r'private\s+')
+                            orig_line = rex.sub('', orig_line)
+                            errors.add("    * line " + str(line_num) + ": private import found")
 
             if (in_import_stmt):
-                symbols += gather_symbols(line)
-                if (len(line)):
-                    imports.append(line)
+                imported_symbols += gather_symbols(line)
                 if (";" in line):
                     in_import_stmt = False
+                if (len(line)):
+                    # Get rid of the last character (',' or ';')
+                    line = line.rstrip(',;')
+                    imports.append(line)
             else:
-                for symbol in symbols:
+                for symbol in imported_symbols:
                     if symbol in line:
                         symbols_seen.add(symbol)
 
-            if (write_mode):
-                out_file.write(orig_line)
+            out_file.write(orig_line)
 
-        if (write_mode):
-            out_file.close()
+    # Attempt to compile
+    devnull = open(os.devnull, 'w')
+    return_code = subprocess.call(["dmd1", "-c", "-o-", file_orig], stdout=devnull, stderr=devnull)
 
-    imports_to_delete = set()
+    if return_code != 0:
+        # Revert to original file
+        shutil.copyfile(file_copy, file_orig)
+    else:
+        # Clear all collected errors as those have been taken care of
+        errors = set()
 
-    for imp in imports:
+        # Update the file copy with the modified version
+        shutil.copyfile(file_orig, file_copy)
+
+    imports_to_delete = []
+
+    imports_set = set(imports)
+
+    for imp in imports_set:
         occurrence_count = imports.count(imp)
         if (occurrence_count > 1):
-            if (write_mode):
-                imports_to_delete.add(imp)
-            else:
-                errors.add("    * '" + imp + "' appears " + str(occurrence_count) + " times")
+            imports_to_delete.append([imp, occurrence_count-1])
 
     if len(imports_to_delete):
-        for imp in imports_to_delete:
-            print "to delete : " + imp
-            search_and_delete_line(imp, file_copy)
+        for imp_with_count in imports_to_delete:
+            del_count = 0
+            num_fail = 0
 
-    symbols_not_seen = set(symbols) - symbols_seen
+            while del_count < imp_with_count[1]:
+                search_and_delete_first_import(imp_with_count[0], num_fail, file_orig)
+
+                # Attempt to compile
+                return_code = subprocess.call(["dmd1", "-c", "-o-", file_orig], stdout=devnull, stderr=devnull)
+
+                if return_code != 0:
+                    num_fail += 1
+                    # Revert
+                    shutil.copyfile(file_copy, file_orig)
+                else:
+                    shutil.copyfile(file_orig, file_copy)
+
+                del_count += 1
+
+            if num_fail != 0:
+                errors.add("    * '" + imp_with_count[0] + "' appears " + str(num_fail + 1) + " times")
+
+    return errors
+    symbols_not_seen = set(imported_symbols) - symbols_seen
     if (len(symbols_not_seen)):
         for symbol in symbols_not_seen:
-            if (write_mode):
-                search_and_delete_symbol(symbol, file_copy)
-                # pass # launch `sed -i '/symbol/d' filename`
+            search_and_delete_symbol_import(symbol, file_copy)
+            # TODO: Attempt to compile
+            # if not successful, add to errors:
+            errors.add("    * import of '" + symbol + "' could probably be removed")
+                # pass # launch `sed -i '/symbol/d' file_orig`
                 # the whole line with 'import.*symbol' can be deleted if it is not a selective import, or it
                 # is a line with a single selective import
                 # But if it is a line with multiple selective imports, it needs better handling
-            else:
-                errors.add("    * import of '" + symbol + "' could probably be removed")
 
-    # if (write_mode):
-    #     shutil.move(file_copy, filename)
+    # shutil.move(file_copy, file_orig)
 
     return errors
-
-parser = argparse.ArgumentParser(description='Script to analyse imports in D code')
-parser.add_argument('-w', '--write', action='store_true',
-                    required = False, default = False,
-                    help = 'Automatically make suggested changes')
-args = vars(parser.parse_args())
 
 cwd = os.getcwd()
 
@@ -242,10 +257,7 @@ if (len(files) == 0):
 print "Analysing " + str(len(files)) + " D files in '" + cwd + "/src'"
 print ""
 
-if (args['write']):
-    tmp_directory = tempfile.mkdtemp()
-else:
-    tmp_directory = 'dummy'
+tmp_directory = tempfile.mkdtemp()
 
 for f in files:
     errors = set()
