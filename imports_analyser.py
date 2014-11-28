@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+import filecmp
 import fnmatch
 import os
 import re
@@ -8,6 +9,13 @@ import subprocess
 import shutil
 import sys
 import tempfile
+
+def compile(filename):
+    with open(os.devnull, 'w') as devnull:
+        # return_code = subprocess.call(["dmd1", "-c", "-o-", file_orig], stdout=devnull, stderr=devnull)
+        return_code = subprocess.call(["gdc", "-c", "-o", "/dev/null", filename], stdout=devnull, stderr=devnull)
+
+    return return_code
 
 def search_and_delete_symbol_import(symbol, filename):
     tmp_file_tuple = tempfile.mkstemp()
@@ -24,22 +32,24 @@ def search_and_delete_symbol_import(symbol, filename):
             skip_line = False
 
             if ('import' in line) and (symbol in line) and (';' in line):
-                if (':' in line):
-                    # selective imports
-                    pass
+                if (',' not in line):
+                    skip_line = True
                 else:
-                    if (',' not in line):
-                        skip_line = True
+                    if (':' in line):
+                        begin_matcher = r'\s' + re.escape(symbol) + r'\s*,\s*'
+                        middle_matcher = r',\s*' + re.escape(symbol) + r'\s*,\s*'
+                        end_matcher = r'\s*,\s*' + re.escape(symbol) + r'\s*'
                     else:
                         begin_matcher = r'\s.*' + re.escape(symbol) + r'\s*,\s*'
                         middle_matcher = r',.*' + re.escape(symbol) + r'\s*,\s*'
                         end_matcher = r'\s*,\s*.*' + re.escape(symbol) + r'\s*'
-                        if re.search(middle_matcher, line):
-                            line = re.sub(middle_matcher, ', ', line)
-                        elif re.search(begin_matcher, line):
-                            line = re.sub(begin_matcher, ' ', line)
-                        elif re.search(end_matcher, line):
-                            line = re.sub(end_matcher, '', line)
+
+                    if re.search(middle_matcher, line):
+                        line = re.sub(middle_matcher, ', ', line)
+                    elif re.search(begin_matcher, line):
+                        line = re.sub(begin_matcher, ' ', line)
+                    elif re.search(end_matcher, line):
+                        line = re.sub(end_matcher, '', line)
 
             if (not skip_line):
                 out_file.write(line)
@@ -91,12 +101,18 @@ def gather_symbols(line):
 
 def analyse_file(file_orig, tmp_directory):
 
-    imports = []
     errors = set()
+
+    return_code = compile(file_orig)
+
+    if return_code != 0:
+        errors.add("    ****** BUILD FAILURE!! ******")
+        return errors
 
     in_multiline_comment = False
     in_import_stmt = False
 
+    imports = []
     imported_symbols = []
     symbols_seen = set()
 
@@ -175,9 +191,7 @@ def analyse_file(file_orig, tmp_directory):
 
             out_file.write(orig_line)
 
-    # Attempt to compile
-    devnull = open(os.devnull, 'w')
-    return_code = subprocess.call(["dmd1", "-c", "-o-", file_orig], stdout=devnull, stderr=devnull)
+    return_code = compile(file_orig)
 
     if return_code != 0:
         # Revert to original file
@@ -206,8 +220,7 @@ def analyse_file(file_orig, tmp_directory):
             while del_count < imp_with_count[1]:
                 search_and_delete_first_import(imp_with_count[0], num_fail, file_orig)
 
-                # Attempt to compile
-                return_code = subprocess.call(["dmd1", "-c", "-o-", file_orig], stdout=devnull, stderr=devnull)
+                return_code = compile(file_orig)
 
                 if return_code != 0:
                     num_fail += 1
@@ -221,20 +234,31 @@ def analyse_file(file_orig, tmp_directory):
             if num_fail != 0:
                 errors.add("    * '" + imp_with_count[0] + "' appears " + str(num_fail + 1) + " times")
 
-    return errors
+    shutil.copyfile(file_orig, file_copy)
+
     symbols_not_seen = set(imported_symbols) - symbols_seen
     if (len(symbols_not_seen)):
-        for symbol in symbols_not_seen:
-            search_and_delete_symbol_import(symbol, file_copy)
-            # TODO: Attempt to compile
-            # if not successful, add to errors:
-            errors.add("    * import of '" + symbol + "' could probably be removed")
-                # pass # launch `sed -i '/symbol/d' file_orig`
-                # the whole line with 'import.*symbol' can be deleted if it is not a selective import, or it
-                # is a line with a single selective import
-                # But if it is a line with multiple selective imports, it needs better handling
+        symbol_del_fail = set()
 
-    # shutil.move(file_copy, file_orig)
+        for symbol in symbols_not_seen:
+            search_and_delete_symbol_import(symbol, file_orig)
+
+            if filecmp.cmp(file_orig, file_copy):
+                symbol_del_fail.add(symbol)
+                continue;
+
+            return_code = compile(file_orig)
+
+            if return_code != 0:
+                # Revert
+                shutil.copyfile(file_copy, file_orig)
+                symbol_del_fail.add(symbol)
+            else:
+                shutil.copyfile(file_orig, file_copy)
+
+        if len(symbol_del_fail):
+            for symbol in symbol_del_fail:
+                errors.add("    * import of '" + symbol + "' could probably be removed")
 
     return errors
 
@@ -270,7 +294,5 @@ for f in files:
             print e
         print ""
 
-# TODO:
-# if (tmp file exists):
-#     pass # delete it!
+shutil.rmtree(tmp_directory)
 
