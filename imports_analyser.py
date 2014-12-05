@@ -11,11 +11,40 @@ import sys
 import tempfile
 import time
 
-def compile(filename):
+def get_compile_command(submods):
+    compile_command = []
+
+    # For D1
+    compile_command.append("dmd1")
+    compile_command.append("-di")
+    compile_command.append("-c")
+    compile_command.append("-o-")
+    compile_command.append("-unittest")
+    compile_command.append("-version=UnitTest")
+    for submod in submods:
+        compile_command.append("-I" + submod + "/src")
+
+    # # For a test D2 file
+    # compile_command.append("gdc")
+    # compile_command.append("-c")
+    # compile_command.append("-o")
+    # compile_command.append("/dev/null")
+
+    # # For vibe.d
+    # compile_command.append("gdc")
+    # compile_command.append("-I/home/gautam/play/vibe.d/source")
+    # compile_command.append("-c")
+    # compile_command.append("-o")
+    # compile_command.append("/dev/null")
+
+    return compile_command
+
+def compile(filename, compile_command):
+    local_compile_command = compile_command[:]
+    local_compile_command.append(filename)
+
     with open(os.devnull, 'w') as devnull:
-        # return_code = subprocess.call(["dmd1", "-c", "-o-", file_orig], stdout=devnull, stderr=devnull)
-        # return_code = subprocess.call(["gdc", "-c", "-o", "/dev/null", filename], stdout=devnull, stderr=devnull)
-        return_code = subprocess.call(["gdc", "-I/home/gautam/play/vibe.d/source", "-c", "-o", "/dev/null", filename], stdout=devnull, stderr=devnull)
+        return_code = subprocess.call(local_compile_command, stdout=devnull, stderr=devnull)
 
     return return_code
 
@@ -101,11 +130,11 @@ def gather_symbols(line):
 
     return symbols
 
-def analyse_file(file_orig, tmp_directory):
+def analyse_file(file_orig, compile_command, tmp_directory):
 
     errors = set()
 
-    return_code = compile(file_orig)
+    return_code = compile(file_orig, compile_command)
 
     if return_code != 0:
         errors.add("    ****** BUILD FAILURE!! ******")
@@ -193,7 +222,7 @@ def analyse_file(file_orig, tmp_directory):
 
             out_file.write(orig_line)
 
-    return_code = compile(file_orig)
+    return_code = compile(file_orig, compile_command)
 
     if return_code != 0:
         # Revert to original file
@@ -222,7 +251,7 @@ def analyse_file(file_orig, tmp_directory):
             while del_count < imp_with_count[1]:
                 search_and_delete_first_import(imp_with_count[0], num_fail, file_orig)
 
-                return_code = compile(file_orig)
+                return_code = compile(file_orig, compile_command)
 
                 if return_code != 0:
                     num_fail += 1
@@ -249,7 +278,7 @@ def analyse_file(file_orig, tmp_directory):
                 symbol_del_fail.add(symbol)
                 continue;
 
-            return_code = compile(file_orig)
+            return_code = compile(file_orig, compile_command)
 
             if return_code != 0:
                 # Revert
@@ -260,7 +289,7 @@ def analyse_file(file_orig, tmp_directory):
 
         if len(symbol_del_fail):
             for symbol in symbol_del_fail:
-                errors.add("    * import of '" + symbol + "' could probably be removed")
+                errors.add("    * '" + symbol + "' imported but unused (selective imports possible?)")
 
     return errors
 
@@ -301,6 +330,19 @@ if (total_files == 0):
     print "No D files found under '" + cwd + "/src'. Aborting."
     sys.exit(2)
 
+submods = []
+
+if not os.path.isdir(cwd + "/submodules"):
+    print "'" + cwd + "/submodules' doesn't exist. Assuming no submodules."
+else:
+    submods_dir = cwd + "/submodules"
+    for item in os.listdir(submods_dir):
+        full_path = os.path.join(submods_dir, item)
+        if os.path.isdir(full_path):
+            submods.append(full_path)
+
+compile_command = get_compile_command(submods)
+
 print "Analysing " + str(total_files) + " D files in '" + cwd + "/src'"
 print ""
 
@@ -313,7 +355,7 @@ for f in files:
 
     errors = set()
 
-    errors = analyse_file(f, tmp_directory)
+    errors = analyse_file(f, compile_command, tmp_directory)
 
     files_done += 1
 
@@ -325,6 +367,8 @@ for f in files:
         for e in errors:
             print e
         print ""
+
+update_progress(1.0)
 
 print ""
 shutil.rmtree(tmp_directory)
