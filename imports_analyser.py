@@ -11,7 +11,18 @@ import sys
 import tempfile
 import time
 
-def get_compile_command(submods):
+def get_compile_command(cwd):
+    submods = []
+
+    if not os.path.isdir(cwd + "/submodules"):
+        print "'" + cwd + "/submodules' doesn't exist. Assuming no submodules."
+    else:
+        submods_dir = cwd + "/submodules"
+        for item in os.listdir(submods_dir):
+            full_path = os.path.join(submods_dir, item)
+            if os.path.isdir(full_path):
+                submods.append(full_path)
+
     compile_command = []
 
     # For D1
@@ -21,8 +32,6 @@ def get_compile_command(submods):
     compile_command.append("-o-")
     compile_command.append("-unittest")
     compile_command.append("-version=UnitTest")
-    for submod in submods:
-        compile_command.append("-I" + submod + "/src")
 
     # # For a test D2 file
     # compile_command.append("gdc")
@@ -36,6 +45,10 @@ def get_compile_command(submods):
     # compile_command.append("-c")
     # compile_command.append("-o")
     # compile_command.append("/dev/null")
+
+    compile_command.append("-I" + cwd + "/src")
+    for submod in submods:
+        compile_command.append("-I" + submod + "/src")
 
     return compile_command
 
@@ -330,18 +343,10 @@ if (total_files == 0):
     print "No D files found under '" + cwd + "/src'. Aborting."
     sys.exit(2)
 
-submods = []
-
-if not os.path.isdir(cwd + "/submodules"):
-    print "'" + cwd + "/submodules' doesn't exist. Assuming no submodules."
-else:
-    submods_dir = cwd + "/submodules"
-    for item in os.listdir(submods_dir):
-        full_path = os.path.join(submods_dir, item)
-        if os.path.isdir(full_path):
-            submods.append(full_path)
-
-compile_command = get_compile_command(submods)
+compile_command = get_compile_command(cwd)
+# for c in compile_command:
+#     print c,
+# sys.exit(0)
 
 print "Analysing " + str(total_files) + " D files in '" + cwd + "/src'"
 print ""
