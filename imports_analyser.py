@@ -173,6 +173,10 @@ def search_and_delete_first_import(imp, skip_count, filename):
                     skip_count -= 1
                     out_file.write(line);
                 else:
+                    # The current line is not written to the output file (effectively deleting it).
+
+                    # Set the done flag so that all remaining lines in the file are blindly written
+                    # to the output file.
                     done = True
             else:
                 out_file.write(line);
@@ -460,9 +464,6 @@ if (total_files == 0):
     sys.exit(2)
 
 compile_command = get_compile_command(cwd)
-# for c in compile_command:
-#     print c,
-# sys.exit(0)
 
 print "Analysing " + str(total_files) + " D files in '" + cwd + "/src'"
 print ""
@@ -481,9 +482,11 @@ for f in files:
     files_done += 1
 
     if (len(errors)):
+        # Get rid of the progress bar
         sys.stdout.write("\r")
         sys.stdout.write("\033[K") # Clear to the end of line
         sys.stdout.flush()
+
         print f + ":"
         for e in errors:
             print e
