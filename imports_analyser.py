@@ -1,5 +1,12 @@
 #!/usr/bin/python
 
+
+####################################################################################################
+#
+#   Imports
+#
+####################################################################################################
+
 import argparse
 import filecmp
 import fnmatch
@@ -10,6 +17,20 @@ import shutil
 import sys
 import tempfile
 import time
+
+
+
+####################################################################################################
+#
+#   Function to form the command used for compilation.
+#
+#   Params:
+#       cwd = the current working directory
+#
+#   Returns:
+#       the compilation command to be used (does not contain the filename)
+#
+####################################################################################################
 
 def get_compile_command(cwd):
     submods = []
@@ -52,6 +73,20 @@ def get_compile_command(cwd):
 
     return compile_command
 
+
+####################################################################################################
+#
+#   Function to compile a file.
+#
+#   Params:
+#       filename = the file to be compiled
+#       compile_command = command to be used for the compilation
+#
+#   Returns:
+#       the return code of the result of compilation
+#
+####################################################################################################
+
 def compile(filename, compile_command):
     local_compile_command = compile_command[:]
     local_compile_command.append(filename)
@@ -60,6 +95,17 @@ def compile(filename, compile_command):
         return_code = subprocess.call(local_compile_command, stdout=devnull, stderr=devnull)
 
     return return_code
+
+
+####################################################################################################
+#
+#   Function used to search for and delete the statement importing the given symbol.
+#
+#   Params:
+#       symbol = symbol whose import statement is to be deleted
+#       filename = file in which to search
+#
+####################################################################################################
 
 def search_and_delete_symbol_import(symbol, filename):
     tmp_file_tuple = tempfile.mkstemp()
@@ -100,6 +146,20 @@ def search_and_delete_symbol_import(symbol, filename):
 
     shutil.move(tmp_file, filename)
 
+
+####################################################################################################
+#
+#   Function to search for and delete the first occurrence of the given import statement. This
+#   function is used only when an import statement occurs multiple times in a file.
+#
+#   Params:
+#       imp = the import statement to be deleted
+#       skip_count = the number of times the given import statement should be skipped (i.e. retained
+#                    as is and not treated as a match)
+#       filename = file in which to search
+#
+####################################################################################################
+
 def search_and_delete_first_import(imp, skip_count, filename):
     tmp_file_tuple = tempfile.mkstemp()
     tmp_file = tmp_file_tuple[1]
@@ -118,6 +178,19 @@ def search_and_delete_first_import(imp, skip_count, filename):
                 out_file.write(line);
 
     shutil.move(tmp_file, filename)
+
+
+####################################################################################################
+#
+#   Function to gather all symbols of interest in the given line.
+#
+#   Params:
+#       line = the line from which to gather symbols
+#
+#   Returns:
+#       a list containing all the gathered symbols
+#
+####################################################################################################
 
 def gather_symbols(line):
     if (len(line) == 0):
@@ -142,6 +215,27 @@ def gather_symbols(line):
         symbols = line.split('.')[-1].split()
 
     return symbols
+
+
+####################################################################################################
+#
+#   Function to analyse a file to determine which imports may not be necessary.
+#   It also acts upon the determined suggestions and makes changes to the file as necessary (the
+#   file is compiled after every edit and if the compilation fails, it is rolled back to its most
+#   recent compilable state).
+#
+#   Params:
+#       file_orig = the file to be analysed
+#       compile_command = the command to be used for compiling the file
+#       tmp_directory = directory in which to create temporary files whenever needed
+#
+#   Returns:
+#       a set containing all errors
+#       (if the set is not made up of a single element pointing to an outright compilation error,
+#       then it should be thought of as a set of suggestions which could not be automatically
+#       applied)
+#
+####################################################################################################
 
 def analyse_file(file_orig, compile_command, tmp_directory):
 
@@ -306,6 +400,20 @@ def analyse_file(file_orig, compile_command, tmp_directory):
 
     return errors
 
+
+####################################################################################################
+#
+#   Function to display a progress bar to indicate the status of the program.
+#
+#   Params:
+#       progress = a floating point integer between 0 and 1 indicating how much of the program is
+#                  done (0 implies nothing is done, 1 implies the program is complete)
+#
+#   Returns:
+#       a set containing all errors (to be thought of as a set of suggestions)
+#
+####################################################################################################
+
 def update_progress(progress):
     bar_len = 80 # Modify this to change the length of the progress bar
 
@@ -324,6 +432,14 @@ def update_progress(progress):
     sys.stdout.write("\033[K") # Clear to the end of line
     sys.stdout.write(text)
     sys.stdout.flush()
+
+
+
+####################################################################################################
+#
+#    Execution starts here! [main :)]
+#
+####################################################################################################
 
 cwd = os.getcwd()
 
