@@ -68,6 +68,7 @@ def get_compile_command(cwd):
     # compile_command.append("/dev/null")
 
     compile_command.append("-I" + cwd + "/src")
+
     for submod in submods:
         compile_command.append("-I" + submod + "/src")
 
@@ -81,14 +82,19 @@ def get_compile_command(cwd):
 #   Params:
 #       filename = the file to be compiled
 #       compile_command = command to be used for the compilation
+#       debug_flags = set of additional debug flags present in the file
 #
 #   Returns:
 #       the return code of the result of compilation
 #
 ####################################################################################################
 
-def compile(filename, compile_command):
+def compile(filename, compile_command, debug_flags):
     local_compile_command = compile_command[:]
+
+    for flag in debug_flags:
+        local_compile_command.append("-debug=" + flag)
+
     local_compile_command.append(filename)
 
     with open(os.devnull, 'w') as devnull:
@@ -245,7 +251,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
 
     errors = set()
 
-    return_code = compile(file_orig, compile_command)
+    return_code = compile(file_orig, compile_command, [])
 
     if return_code != 0:
         errors.add("    ****** BUILD FAILURE!! ******")
@@ -256,6 +262,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
     imports = []
     imported_symbols = []
     symbols_seen = set()
+    debug_flags = set()
 
     # Make a copy of the file
     file_copy = tmp_directory + '/file_copy'
@@ -318,9 +325,20 @@ def analyse_file(file_orig, compile_command, tmp_directory):
                     if symbol in line:
                         symbols_seen.add(symbol)
 
+            if "debug" in line:
+                # Remove all spaces
+                rex = re.compile(r'\s+')
+                line = rex.sub('', line)
+
+                # Get the word in the parentheses after debug (matching inside the parentheses is
+                # done in a non-greedy manner using '?')
+                m = re.search(r'debug\((.*?)\)', line)
+                if m:
+                    debug_flags.add(m.group(1))
+
             out_file.write(orig_line)
 
-    return_code = compile(file_orig, compile_command)
+    return_code = compile(file_orig, compile_command, debug_flags)
 
     if return_code != 0:
         # Revert to original file
@@ -349,7 +367,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
             while del_count < imp_with_count[1]:
                 search_and_delete_first_import(imp_with_count[0], num_fail, file_orig)
 
-                return_code = compile(file_orig, compile_command)
+                return_code = compile(file_orig, compile_command, debug_flags)
 
                 if return_code != 0:
                     num_fail += 1
@@ -376,7 +394,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
                 symbol_del_fail.add(symbol)
                 continue;
 
-            return_code = compile(file_orig, compile_command)
+            return_code = compile(file_orig, compile_command, debug_flags)
 
             if return_code != 0:
                 # Revert
