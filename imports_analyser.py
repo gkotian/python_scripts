@@ -174,7 +174,7 @@ def search_and_delete_first_import(imp, skip_count, filename):
         done = False
 
         for line in in_file:
-            if (not done) and (imp in line):
+            if (not done) and ("import" in line) and (imp in line):
                 if (skip_count > 0):
                     skip_count -= 1
                     out_file.write(line);
