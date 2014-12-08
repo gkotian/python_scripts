@@ -251,7 +251,6 @@ def analyse_file(file_orig, compile_command, tmp_directory):
         errors.add("    ****** BUILD FAILURE!! ******")
         return errors
 
-    in_multiline_comment = False
     in_import_stmt = False
 
     imports = []
@@ -277,19 +276,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
                 out_file.write(orig_line)
                 continue
 
-            if (line.endswith("*/")):
-                in_multiline_comment = False
-
-            if ( in_multiline_comment ):
-                out_file.write(orig_line)
-                continue
-
             if (line.startswith("//")):
-                out_file.write(orig_line)
-                continue
-
-            if (line.startswith("/*")):
-                in_multiline_comment = True
                 out_file.write(orig_line)
                 continue
 
