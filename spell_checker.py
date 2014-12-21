@@ -7,7 +7,10 @@
 #
 ####################################################################################################
 
-# import argparse
+from enchant import Dict, DictWithPWL
+from enchant.checker import SpellChecker
+
+import argparse
 # import filecmp
 import fnmatch
 import os
@@ -48,33 +51,25 @@ def extract_comments(text):
 #
 #   Params:
 #       filename = file to analyse
+#       checker  = object used to check spellings
 #
 #   Returns:
 #       a set containing all potential spelling mistakes
 #
 ####################################################################################################
 
-def analyse_file(filename):
+def analyse_file(filename, checker):
     f = open(filename, 'r')
     contents = f.read()
 
     comments_list = extract_comments(contents)
 
-    words_set = set()
-
     for comment in comments_list:
-        # Get the individual words in the comment
-        words_list = []
-        words_list = re.compile('[a-zA-Z]+').findall(comment)
+        checker.set_text(comment)
+        for error in checker:
+            errors.add(error.word)
 
-        for word in words_list:
-            words_set.add(word)
-
-    print words_set
-    # for word in words_set:
-    #     if word in whitelist:
-    #         continue
-    return ""
+    return errors
 
 
 ####################################################################################################
@@ -110,12 +105,31 @@ def update_progress(progress):
     sys.stdout.flush()
 
 
+def get_valid_words(whitelist=""):
+    # Load a dictionary
+    if whitelist:
+        d = DictWithPWL("en_GB", whitelist)
+    else:
+        d = Dict("en_GB")
+
+    return d
+
+
 
 ####################################################################################################
 #
 #    Execution starts here! [main :)]
 #
 ####################################################################################################
+
+parser = argparse.ArgumentParser(description='Spell Checker')
+parser.add_argument('-s', '--suggest', action='store_true',
+                    required = False, default = False,
+                    help = 'Provide suggestions for possible errors')
+parser.add_argument('-w', '--whitelist', nargs='?',
+                    required = False, default = "",
+                    help = 'Provide a whitelist file')
+args = vars(parser.parse_args())
 
 cwd = os.getcwd()
 
@@ -138,29 +152,38 @@ if (total_files == 0):
 print "Analysing " + str(total_files) + " D files in '" + cwd + "/src'"
 print ""
 
+# Get all valid words
+valid_words = get_valid_words(args['whitelist'])
+
+# Make a spell checker object
+checker = SpellChecker(valid_words)
+
 files_done = 0
 
 for f in files:
-    # update_progress(files_done / float(total_files))
+    update_progress(files_done / float(total_files))
 
     errors = set()
 
-    errors = analyse_file(f)
+    errors = analyse_file(f, checker)
 
     files_done += 1
 
-    # if (len(errors)):
-    #     # Get rid of the progress bar
-    #     sys.stdout.write("\r")
-    #     sys.stdout.write("\033[K") # Clear to the end of line
-    #     sys.stdout.flush()
+    if (len(errors)):
+        # Get rid of the progress bar
+        sys.stdout.write("\r")
+        sys.stdout.write("\033[K") # Clear to the end of line
+        sys.stdout.flush()
 
-    #     print f + ":"
-    #     for e in errors:
-    #         print e
-    #     print ""
+        print f + ":"
+        for e in errors:
+            print "    * " + e
+            if args['suggest']:
+                print "        ",
+                print valid_words.suggest(e)
+        print ""
 
-# update_progress(1.0)
+update_progress(1.0)
 
 print ""
 
