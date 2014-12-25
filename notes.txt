@@ -1,3 +1,10 @@
 To remove fluff:
 
     $> sed -i 's/\* import of '\''\(.*\)'\'' could probably be removed/\1/g' imports_cleanup.txt
+
+
+
+For the PyEnchant library:
+    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python
+    sudo easy_install PyEnchant
+
