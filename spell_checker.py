@@ -106,6 +106,7 @@ def update_progress(progress):
 #   Gets all valid words.
 #
 #   Params:
+#       dictionary = dictionary to use
 #       whitelist = file containing words that are to be considered valid (optional)
 #
 #   Returns:
@@ -113,11 +114,11 @@ def update_progress(progress):
 #
 ####################################################################################################
 
-def get_valid_words(whitelist=""):
+def get_valid_words(dictionary, whitelist=""):
     if whitelist:
-        d = DictWithPWL("en_GB", whitelist)
+        d = DictWithPWL(dictionary, whitelist)
     else:
-        d = Dict("en_GB")
+        d = Dict(dictionary)
 
     return d
 
@@ -162,6 +163,9 @@ parser = argparse.ArgumentParser(description='Spell Checker')
 parser.add_argument('-s', '--suggest', action='store_true',
                     required = False, default = False,
                     help = 'Provide suggestions for possible errors')
+parser.add_argument('-u', '--us-english', action='store_true',
+                    required = False, default = False,
+                    help = 'Use American English')
 parser.add_argument('-w', '--whitelist', nargs='?',
                     required = False, default = "",
                     help = 'Provide a whitelist file')
@@ -184,8 +188,12 @@ if (total_files == 0):
 print "Analysing " + str(total_files) + " files."
 print ""
 
+# Note 'us_english' instead of 'us-english' since the hyphen is automatically converted to an
+# underscore
+dictionary = "en_US" if args['us_english'] else "en_GB"
+
 # Get the collection of all valid words
-valid_words = get_valid_words(args['whitelist'])
+valid_words = get_valid_words(dictionary, args['whitelist'])
 
 # Make a spell checker object using all the valid words
 checker = SpellChecker(valid_words)
