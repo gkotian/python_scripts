@@ -123,6 +123,32 @@ def get_valid_words(whitelist=""):
 
 ####################################################################################################
 #
+#   Filters a list of files to get only supported files
+#
+#   Params:
+#       all_files = list of files to be filtered
+#
+#   Returns:
+#       a list containing only supported files
+#
+####################################################################################################
+
+def filter_supported_files(all_files):
+    supported_filetypes = [ 'd', 'txt' ]
+
+    filtered_files = []
+
+    for filename in all_files:
+        for extension in supported_filetypes:
+            if filename.endswith("." + extension):
+                filtered_files.append(filename)
+                break
+
+    return filtered_files
+
+
+####################################################################################################
+#
 #    Execution starts here! [main :)]
 #
 ####################################################################################################
@@ -138,29 +164,25 @@ args = vars(parser.parse_args())
 
 cwd = os.getcwd()
 
-if not os.path.isdir(cwd + "/src"):
-    print "'" + cwd + "/src' doesn't exist. Aborting."
-    sys.exit(1)
-
 files = []
 
-for root, subdirs, filenames in os.walk(cwd + "/src"):
-    for filename in fnmatch.filter(filenames, "*.d"):
+for root, subdirs, filenames in os.walk(cwd):
+    for filename in filter_supported_files(filenames):
         files.append(os.path.join(root, filename))
 
 total_files = len(files)
 
 if (total_files == 0):
-    print "No D files found under '" + cwd + "/src'. Aborting."
-    sys.exit(2)
+    print "No supported files to process. Aborting."
+    sys.exit(1)
 
-print "Analysing " + str(total_files) + " D files in '" + cwd + "/src'"
+print "Analysing " + str(total_files) + " files."
 print ""
 
-# Get all valid words
+# Get the collection of all valid words
 valid_words = get_valid_words(args['whitelist'])
 
-# Make a spell checker object
+# Make a spell checker object using all the valid words
 checker = SpellChecker(valid_words)
 
 files_done = 0
