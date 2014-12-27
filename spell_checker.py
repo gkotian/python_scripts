@@ -20,28 +20,6 @@ import sys
 
 ####################################################################################################
 #
-#   Extracts comments from the given code text
-#
-#   Params:
-#       text = code from which to extract comments
-#
-#   Returns:
-#       a list containing the extracted comments
-#
-####################################################################################################
-
-def extract_comments(text):
-    pattern = re.compile(
-        # r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
-        r'/\+.*?\+/|//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
-        re.DOTALL | re.MULTILINE
-    )
-
-    return re.findall(pattern, text)
-
-
-####################################################################################################
-#
 #   Checks for possible spelling mistakes in the comments of a file.
 #
 #   Params:
@@ -57,10 +35,27 @@ def analyse_file(filename, checker):
     f = open(filename, 'r')
     contents = f.read()
 
-    comments_list = extract_comments(contents)
+    errors = set()
 
-    for comment in comments_list:
-        checker.set_text(comment)
+    if filename.endswith(".c") or filename.endswith(".cc") or filename.endswith(".cpp"):
+        pattern = re.compile(
+            r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
+            re.DOTALL | re.MULTILINE
+        )
+        text_list = re.findall(pattern, contents)
+    elif filename.endswith(".d"):
+        pattern = re.compile(
+            r'/\+.*?\+/|//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
+            re.DOTALL | re.MULTILINE
+        )
+        text_list = re.findall(pattern, contents)
+    elif filename.endswith(".txt"):
+        text_list = contents.split()
+    else:
+        return errors
+
+    for text in text_list:
+        checker.set_text(text)
         for error in checker:
             errors.add(error.word)
 
