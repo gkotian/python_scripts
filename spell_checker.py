@@ -7,19 +7,14 @@
 #
 ####################################################################################################
 
-from enchant import Dict, DictWithPWL
+from enchant         import Dict, DictWithPWL
 from enchant.checker import SpellChecker
 
 import argparse
-# import filecmp
 import fnmatch
 import os
 import re
-# import subprocess
-# import shutil
 import sys
-# import tempfile
-# import time
 
 
 
@@ -105,15 +100,25 @@ def update_progress(progress):
     sys.stdout.flush()
 
 
+####################################################################################################
+#
+#   Gets all valid words.
+#
+#   Params:
+#       whitelist = file containing words that are to be considered valid (optional)
+#
+#   Returns:
+#       a 'Dict' object containing all valid words
+#
+####################################################################################################
+
 def get_valid_words(whitelist=""):
-    # Load a dictionary
     if whitelist:
         d = DictWithPWL("en_GB", whitelist)
     else:
         d = Dict("en_GB")
 
     return d
-
 
 
 ####################################################################################################
