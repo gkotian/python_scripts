@@ -134,15 +134,18 @@ def get_valid_words(whitelist=""):
 ####################################################################################################
 
 def filter_supported_files(all_files):
-    supported_filetypes = [ 'd', 'txt' ]
+    supported_extensionless_files = [ 'Makefile' ]
+    supported_extensioned_file_types = [ 'c', 'cc', 'cpp', 'd', 'txt' ]
 
     filtered_files = []
 
     for filename in all_files:
-        for extension in supported_filetypes:
-            if filename.endswith("." + extension):
+        if filename in supported_extensionless_files:
+            filtered_files.append(filename)
+        else:
+            dummy, extension = os.path.splitext(filename)
+            if extension[1:] in supported_extensioned_file_types:
                 filtered_files.append(filename)
-                break
 
     return filtered_files
 
