@@ -54,6 +54,20 @@ def get_compile_command(cwd):
     compile_command.append("-unittest")
     compile_command.append("-version=UnitTest")
 
+    repo = cwd.split('/')[-1]
+
+    if repo == "ocean":
+        compile_command.append("-L-lebtree")
+        compile_command.append("-L-lglib-2.0")
+        compile_command.append("-L-lpcre")
+        compile_command.append("-L-lxml2")
+        compile_command.append("-L-lxslt")
+        compile_command.append("-L-lebtree")
+        compile_command.append("-L-ltokyocabinet")
+        compile_command.append("-L-llzo2")
+        compile_command.append("-L-lreadline")
+        compile_command.append("-L-lhistory")
+
     # # For a test D2 file
     # compile_command.append("gdc")
     # compile_command.append("-c")
