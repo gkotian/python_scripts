@@ -54,6 +54,10 @@ def get_compile_command(cwd):
     compile_command.append("-unittest")
     compile_command.append("-version=UnitTest")
 
+    # Using dtest
+    # compile_command.append("/home/gautam/work/backend/script/dtest")
+    # compile_command.append("-di")
+
     # # For a test D2 file
     # compile_command.append("gdc")
     # compile_command.append("-c")
