@@ -104,6 +104,23 @@ def compile(filename, compile_command, debug_flags):
     with open(os.devnull, 'w') as devnull:
         return_code = subprocess.call(local_compile_command, stdout=devnull, stderr=devnull)
 
+        if return_code == 0:
+            dtest_compile_command = []
+            dtest_compile_command.append("/home/gautam/work/backend/script/dtest")
+            dtest_compile_command.append("-di")
+            dtest_compile_command.append("-L-lebtree")
+            dtest_compile_command.append("-L-lglib-2.0")
+            dtest_compile_command.append("-L-lpcre")
+            dtest_compile_command.append("-L-lxml2")
+            dtest_compile_command.append("-L-lxslt")
+            dtest_compile_command.append("-L-lebtree")
+            dtest_compile_command.append("-L-ltokyocabinet")
+            dtest_compile_command.append("-L-llzo2")
+            dtest_compile_command.append("-L-lreadline")
+            dtest_compile_command.append("-L-lhistory")
+            dtest_compile_command.append(filename)
+            return_code = subprocess.call(dtest_compile_command, stdout=devnull, stderr=devnull)
+
     return return_code
 
 
