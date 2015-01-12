@@ -297,20 +297,31 @@ def analyse_file(file_orig, compile_command, tmp_directory):
                 split_count = len(three_parts)
                 if (split_count == 1):
                     if (three_parts[0] == "import"):
+                        # 'import' is the only word in the line - assume it is a valid import
+                        # statement
                         in_import_stmt = True
                     out_file.write(orig_line)
                     continue
                 else:
                     if (three_parts[0] == "import"):
+                        # 'import' is the first word in the line - assume it is a valid import
+                        # statement
                         in_import_stmt = True
                         line = three_parts[1] if (split_count == 2) else three_parts[1] + three_parts[2]
                     elif (three_parts[1] == "import"):
-                        in_import_stmt = True
+                        # 'import' is the second word in the line - but we'll take it as a valid
+                        # import statement only if it preceded by 'private' or 'public'
                         line = "" if (split_count == 2) else three_parts[2]
                         if (three_parts[0] == "private"):
+                            # It's a 'private import' - valid import statement, but the 'private'
+                            # keyword is redundant, so remove it.
+                            in_import_stmt = True
                             rex = re.compile(r'private\s+')
                             orig_line = rex.sub('', orig_line)
                             errors.add("    * line " + str(line_num) + ": private import found")
+                        elif (three_parts[0] == "public"):
+                            # It's a 'public import' - also valid import statement.
+                            in_import_stmt = True
 
             if (in_import_stmt):
                 imported_symbols += gather_symbols(line)
