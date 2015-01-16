@@ -204,6 +204,8 @@ checker = SpellChecker(valid_words)
 
 files_done = 0
 
+files_with_errors = 0
+
 for f in files:
     update_progress(files_done / float(total_files))
 
@@ -214,12 +216,14 @@ for f in files:
     files_done += 1
 
     if (len(errors)):
+        files_with_errors += 1
+
         # Get rid of the progress bar
         sys.stdout.write("\r")
         sys.stdout.write("\033[K") # Clear to the end of line
         sys.stdout.flush()
 
-        print f + ":"
+        print str(files_with_errors) + ". " + f + ":"
         for e in errors:
             print "    * " + e
             if args['suggest']:
