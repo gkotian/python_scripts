@@ -11,6 +11,7 @@ from enchant         import Dict, DictWithPWL
 from enchant.checker import SpellChecker
 
 import argparse
+import getpass
 import fnmatch
 import os
 import re
@@ -160,6 +161,9 @@ def filter_supported_files(all_files):
 ####################################################################################################
 
 parser = argparse.ArgumentParser(description='Spell Checker')
+parser.add_argument('-n', '--non-interactive', action='store_true',
+                    required = False, default = False,
+                    help = 'Run for all files without waiting for user input')
 parser.add_argument('-s', '--suggest', action='store_true',
                     required = False, default = False,
                     help = 'Provide suggestions for possible errors')
@@ -222,6 +226,11 @@ for f in files:
                 print "        ",
                 print valid_words.suggest(e)
         print ""
+
+        # Note 'non_interactive' instead of 'non-interactive' since the hyphen is automatically
+        # converted to an underscore
+        if not args['non_interactive']:
+            dummy = getpass.getpass("")
 
 update_progress(1.0)
 
