@@ -218,18 +218,18 @@ valid_words = get_valid_words(dictionary, args['whitelist'])
 # Make a spell checker object using all the valid words
 checker = SpellChecker(valid_words)
 
-files_done = 0
+files_analysed = 0
 
 files_with_errors = 0
 
 for f in files:
-    update_progress(files_done / float(total_files))
+    update_progress(files_analysed / float(total_files))
 
     errors = set()
 
     errors = analyse_file(f, checker)
 
-    files_done += 1
+    files_analysed += 1
 
     if (len(errors)):
         files_with_errors += 1
