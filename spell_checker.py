@@ -161,6 +161,9 @@ def filter_supported_files(all_files):
 ####################################################################################################
 
 parser = argparse.ArgumentParser(description='Spell Checker')
+parser.add_argument('-k', '--skip-count', nargs='?',
+                    required = False, default = "",
+                    help = 'Number of files to skip')
 parser.add_argument('-n', '--non-interactive', action='store_true',
                     required = False, default = False,
                     help = 'Run for all files without waiting for user input')
@@ -189,8 +192,21 @@ if (total_files == 0):
     print "No supported files to process. Aborting."
     sys.exit(1)
 
-print "Analysing " + str(total_files) + " files."
+print "Files to analyse : " + str(total_files)
+
+files_to_skip = args['skip_count']
+
+if not files_to_skip:
+    files_to_skip = 0
+else:
+    files_to_skip = int(files_to_skip)
+
+print "Files to skip    : " + str(files_to_skip)
 print ""
+
+if files_to_skip > total_files:
+    print "Files to skip more than total files. Aborting."
+    sys.exit(2)
 
 # Note 'us_english' instead of 'us-english' since the hyphen is automatically converted to an
 # underscore
@@ -222,6 +238,12 @@ for f in files:
         sys.stdout.write("\r")
         sys.stdout.write("\033[K") # Clear to the end of line
         sys.stdout.flush()
+
+        if files_to_skip >= files_with_errors:
+            print str(files_with_errors) + ". " + f + " -- skipped"
+            if files_to_skip == files_with_errors:
+                print ""
+            continue
 
         print str(files_with_errors) + ". " + f + ":"
         for e in errors:
