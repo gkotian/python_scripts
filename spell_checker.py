@@ -64,6 +64,8 @@ def analyse_file(filename, checker):
     for text in text_list:
         checker.set_text(text)
         for error in checker:
+            # if error.word in filename:
+            #     print "Filename contains " + error.word
             errors.add(error.word)
 
     return errors
@@ -161,6 +163,9 @@ def filter_supported_files(all_files):
 ####################################################################################################
 
 parser = argparse.ArgumentParser(description='Spell Checker')
+parser.add_argument('-k', '--skip-count', nargs='?',
+                    required = False, default = "",
+                    help = 'Number of files to skip (useful to resume from a stopped point)')
 parser.add_argument('-n', '--non-interactive', action='store_true',
                     required = False, default = False,
                     help = 'Run for all files without waiting for user input')
@@ -206,6 +211,11 @@ files_done = 0
 
 files_with_errors = 0
 
+files_to_skip = args['skip_count']
+
+if not files_to_skip:
+    files_to_skip = 0
+
 for f in files:
     update_progress(files_done / float(total_files))
 
@@ -217,6 +227,10 @@ for f in files:
 
     if (len(errors)):
         files_with_errors += 1
+
+        if (files_with_errors <= files_to_skip):
+            print "continuing... files_with_errors = " + str(files_with_errors) + ", files_to_skip = " + str(files_to_skip)
+            continue
 
         # Get rid of the progress bar
         sys.stdout.write("\r")
