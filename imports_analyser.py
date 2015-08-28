@@ -89,7 +89,7 @@ def get_compile_command(cwd):
 #
 ####################################################################################################
 
-def compile(filename, compile_command, debug_flags):
+def compile_file(filename, compile_command, debug_flags):
     local_compile_command = compile_command[:]
 
     for flag in debug_flags:
@@ -251,7 +251,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
 
     errors = set()
 
-    return_code = compile(file_orig, compile_command, [])
+    return_code = compile_file(file_orig, compile_command, [])
 
     if return_code != 0:
         errors.add("    ****** BUILD FAILURE!! ******")
@@ -349,7 +349,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
 
             out_file.write(orig_line)
 
-    return_code = compile(file_orig, compile_command, debug_flags)
+    return_code = compile_file(file_orig, compile_command, debug_flags)
 
     if return_code != 0:
         # Revert to original file
@@ -378,7 +378,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
             while del_count < imp_with_count[1]:
                 search_and_delete_first_import(imp_with_count[0], num_fail, file_orig)
 
-                return_code = compile(file_orig, compile_command, debug_flags)
+                return_code = compile_file(file_orig, compile_command, debug_flags)
 
                 if return_code != 0:
                     num_fail += 1
@@ -405,7 +405,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
                 symbol_del_fail.add(symbol)
                 continue;
 
-            return_code = compile(file_orig, compile_command, debug_flags)
+            return_code = compile_file(file_orig, compile_command, debug_flags)
 
             if return_code != 0:
                 # Revert
