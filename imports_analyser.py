@@ -464,6 +464,36 @@ def removeProgressBar():
     sys.stdout.flush()
 
 
+####################################################################################################
+#
+#   Function to make a first-pass check on the given files using the given compile command.
+#
+#   Params:
+#       files = list of all files to be compiled
+#       compile_command = command to be used for the compilation
+#
+#   Returns:
+#       string containing the first file that failed to compile, an empty string if all files
+#       compiled successfully
+#
+####################################################################################################
+
+def makeFirstPassCheck(files, compile_command):
+    failed_file = ""
+    files_done = 0
+    total_files = len(files)
+
+    for f in files:
+        updateProgress(files_done / float(total_files))
+        return_code = compileFile(f, compile_command, [])
+        if return_code != 0:
+            failed_file = f
+            break
+        files_done += 1
+
+    removeProgressBar()
+    return failed_file
+
 
 ####################################################################################################
 #
@@ -494,31 +524,26 @@ print ""
 
 compile_command = getCompileCommand(cwd)
 
-print "Making a first-pass check to see if all files compile"
-print ""
+print "Making a first-pass check to see if all files compile ..."
 
-files_done = 0
+failed_file = makeFirstPassCheck(files, compile_command);
+sys.stdout.write("\033[1A") # Go up one line
 
-updateProgress(0.0)
-for f in files:
-    updateProgress(files_done / float(total_files))
-    return_code = compileFile(f, compile_command, [])
-    if return_code != 0:
-        removeProgressBar()
-        print "File '" + f + "' failed to compile."
-        print "Please fix this manually before attempting again."
-        print "Build command used:"
-        for p in compile_command: print p,
-        print f
-        print ""
-        print "Aborting."
-        sys.exit(3)
-    files_done += 1
-updateProgress(1.0)
-
-removeProgressBar()
-print "All files compile successfully. Starting imports analysis now."
-print ""
+if not failed_file:
+    print "Making a first-pass check to see if all files compile ... DONE"
+    print "Starting imports analysis now..."
+    print ""
+else:
+    print "Making a first-pass check to see if all files compile ... FAILED"
+    print ""
+    print "File '" + failed_file + "' failed to compile."
+    print "Please fix this manually before attempting again."
+    print "Build command used:"
+    for p in compile_command: print p,
+    print failed_file
+    print ""
+    print "Aborting."
+    sys.exit(3)
 
 tmp_directory = tempfile.mkdtemp()
 
