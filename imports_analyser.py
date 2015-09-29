@@ -69,6 +69,8 @@ def get_compile_command(cwd):
 
     compile_command.append("-I" + cwd + "/src")
 
+    compile_command.append("-I" + cwd + "/build/devel/include")
+
     for submod in submods:
         compile_command.append("-I" + submod + "/src")
 
