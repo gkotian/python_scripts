@@ -32,7 +32,7 @@ import time
 #
 ####################################################################################################
 
-def get_compile_command(cwd):
+def getCompileCommand(cwd):
     submods = []
 
     if not os.path.isdir(cwd + "/submodules"):
@@ -91,7 +91,7 @@ def get_compile_command(cwd):
 #
 ####################################################################################################
 
-def compile_file(filename, compile_command, debug_flags):
+def compileFile(filename, compile_command, debug_flags):
     local_compile_command = compile_command[:]
 
     for flag in debug_flags:
@@ -115,7 +115,7 @@ def compile_file(filename, compile_command, debug_flags):
 #
 ####################################################################################################
 
-def search_and_delete_symbol_import(symbol, filename):
+def searchAndDeleteSymbolImport(symbol, filename):
     tmp_file_tuple = tempfile.mkstemp()
     tmp_file = tmp_file_tuple[1]
 
@@ -164,7 +164,7 @@ def search_and_delete_symbol_import(symbol, filename):
 #
 ####################################################################################################
 
-def search_and_delete_first_import(imp, skip_count, filename):
+def searchAndDeleteFirstImport(imp, skip_count, filename):
     tmp_file_tuple = tempfile.mkstemp()
     tmp_file = tmp_file_tuple[1]
 
@@ -200,7 +200,7 @@ def search_and_delete_first_import(imp, skip_count, filename):
 #
 ####################################################################################################
 
-def gather_symbols(line):
+def gatherSymbols(line):
     if (len(line) == 0):
         return []
 
@@ -245,11 +245,11 @@ def gather_symbols(line):
 #
 ####################################################################################################
 
-def analyse_file(file_orig, compile_command, tmp_directory):
+def analyseFile(file_orig, compile_command, tmp_directory):
 
     errors = set()
 
-    return_code = compile_file(file_orig, compile_command, [])
+    return_code = compileFile(file_orig, compile_command, [])
 
     if return_code != 0:
         errors.add("    ****** BUILD FAILURE!! ******")
@@ -322,7 +322,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
                             in_import_stmt = True
 
             if (in_import_stmt):
-                imported_symbols += gather_symbols(line)
+                imported_symbols += gatherSymbols(line)
                 if (";" in line):
                     in_import_stmt = False
                 if (len(line)):
@@ -347,7 +347,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
 
             out_file.write(orig_line)
 
-    return_code = compile_file(file_orig, compile_command, debug_flags)
+    return_code = compileFile(file_orig, compile_command, debug_flags)
 
     if return_code != 0:
         # Revert to original file
@@ -374,9 +374,9 @@ def analyse_file(file_orig, compile_command, tmp_directory):
             num_fail = 0
 
             while del_count < imp_with_count[1]:
-                search_and_delete_first_import(imp_with_count[0], num_fail, file_orig)
+                searchAndDeleteFirstImport(imp_with_count[0], num_fail, file_orig)
 
-                return_code = compile_file(file_orig, compile_command, debug_flags)
+                return_code = compileFile(file_orig, compile_command, debug_flags)
 
                 if return_code != 0:
                     num_fail += 1
@@ -397,13 +397,13 @@ def analyse_file(file_orig, compile_command, tmp_directory):
         symbol_del_fail = set()
 
         for symbol in symbols_not_seen:
-            search_and_delete_symbol_import(symbol, file_orig)
+            searchAndDeleteSymbolImport(symbol, file_orig)
 
             if filecmp.cmp(file_orig, file_copy):
                 symbol_del_fail.add(symbol)
                 continue;
 
-            return_code = compile_file(file_orig, compile_command, debug_flags)
+            return_code = compileFile(file_orig, compile_command, debug_flags)
 
             if return_code != 0:
                 # Revert
@@ -432,7 +432,7 @@ def analyse_file(file_orig, compile_command, tmp_directory):
 #
 ####################################################################################################
 
-def update_progress(progress):
+def updateProgress(progress):
     bar_len = 80 # Modify this to change the length of the progress bar
 
     if not isinstance(progress, float):
@@ -446,7 +446,7 @@ def update_progress(progress):
     block = int(round(bar_len * progress))
     text = "Status: [{0}] {1}%".format( "="*(block-1) + ">" + " "*(bar_len-block-1), int(progress*100))
 
-    remove_progress_bar()
+    removeProgressBar()
 
     sys.stdout.write(text)
     sys.stdout.flush()
@@ -458,7 +458,7 @@ def update_progress(progress):
 #
 ####################################################################################################
 
-def remove_progress_bar():
+def removeProgressBar():
     sys.stdout.write("\r")
     sys.stdout.write("\033[K") # Clear to the end of line
     sys.stdout.flush()
@@ -492,19 +492,19 @@ if (total_files == 0):
 print "Found " + str(total_files) + " D files in '" + cwd + "/src'"
 print ""
 
-compile_command = get_compile_command(cwd)
+compile_command = getCompileCommand(cwd)
 
 print "Making a first-pass check to see if all files compile"
 print ""
 
 files_done = 0
 
-update_progress(0.0)
+updateProgress(0.0)
 for f in files:
-    update_progress(files_done / float(total_files))
-    return_code = compile_file(f, compile_command, [])
+    updateProgress(files_done / float(total_files))
+    return_code = compileFile(f, compile_command, [])
     if return_code != 0:
-        remove_progress_bar()
+        removeProgressBar()
         print "File '" + f + "' failed to compile."
         print "Please fix this manually before attempting again."
         print "Build command used:"
@@ -514,9 +514,9 @@ for f in files:
         print "Aborting."
         sys.exit(3)
     files_done += 1
-update_progress(1.0)
+updateProgress(1.0)
 
-remove_progress_bar()
+removeProgressBar()
 print "All files compile successfully. Starting imports analysis now."
 print ""
 
@@ -525,23 +525,23 @@ tmp_directory = tempfile.mkdtemp()
 files_done = 0
 
 for f in files:
-    update_progress(files_done / float(total_files))
+    updateProgress(files_done / float(total_files))
 
     errors = set()
 
-    errors = analyse_file(f, compile_command, tmp_directory)
+    errors = analyseFile(f, compile_command, tmp_directory)
 
     files_done += 1
 
     if (len(errors)):
-        remove_progress_bar()
+        removeProgressBar()
 
         print f + ":"
         for e in errors:
             print e
         print ""
 
-update_progress(1.0)
+updateProgress(1.0)
 
 print ""
 shutil.rmtree(tmp_directory)
