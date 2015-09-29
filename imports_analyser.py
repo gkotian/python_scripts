@@ -446,9 +446,21 @@ def update_progress(progress):
     block = int(round(bar_len * progress))
     text = "Status: [{0}] {1}%".format( "="*(block-1) + ">" + " "*(bar_len-block-1), int(progress*100))
 
+    remove_progress_bar()
+
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
+
+####################################################################################################
+#
+#   Function to remove the progress bar.
+#
+####################################################################################################
+
+def remove_progress_bar():
     sys.stdout.write("\r")
     sys.stdout.write("\033[K") # Clear to the end of line
-    sys.stdout.write(text)
     sys.stdout.flush()
 
 
@@ -520,10 +532,7 @@ for f in files:
     files_done += 1
 
     if (len(errors)):
-        # Get rid of the progress bar
-        sys.stdout.write("\r")
-        sys.stdout.write("\033[K") # Clear to the end of line
-        sys.stdout.flush()
+        remove_progress_bar()
 
         print f + ":"
         for e in errors:
