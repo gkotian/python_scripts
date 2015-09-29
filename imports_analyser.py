@@ -499,12 +499,13 @@ print ""
 
 files_done = 0
 
-# TODO: add a progress bar to this step
+update_progress(0.0)
 for f in files:
+    update_progress(files_done / float(total_files))
     return_code = compile_file(f, compile_command, [])
     if return_code != 0:
-        print "    * " + f + " ... FAILED :("
-        print ""
+        remove_progress_bar()
+        print "File '" + f + "' failed to compile."
         print "Please fix this manually before attempting again."
         print "Build command used:"
         for p in compile_command: print p,
@@ -512,9 +513,10 @@ for f in files:
         print ""
         print "Aborting."
         sys.exit(3)
-    print "    * " + f + " ... OK"
+    files_done += 1
+update_progress(1.0)
 
-print ""
+remove_progress_bar()
 print "All files compile successfully. Starting imports analysis now."
 print ""
 
