@@ -123,10 +123,6 @@ def search_and_delete_symbol_import(symbol, filename):
         skip_line = False
 
         for line in in_file:
-            # If previous line was deleted, and current line is blank, then delete the current line as well
-            if (skip_line and len(line.rstrip()) == 0):
-                continue
-
             skip_line = False
 
             if ('import' in line) and (symbol in line) and (';' in line):
