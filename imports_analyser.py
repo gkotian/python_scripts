@@ -477,9 +477,33 @@ if (total_files == 0):
     print "No D files found under '" + cwd + "/src'. Aborting."
     sys.exit(2)
 
+print "Found " + str(total_files) + " D files in '" + cwd + "/src'"
+print ""
+
 compile_command = get_compile_command(cwd)
 
-print "Analysing " + str(total_files) + " D files in '" + cwd + "/src'"
+print "Making a first-pass check to see if all files compile"
+print ""
+
+files_done = 0
+
+# TODO: add a progress bar to this step
+for f in files:
+    return_code = compile_file(f, compile_command, [])
+    if return_code != 0:
+        print "    * " + f + " ... FAILED :("
+        print ""
+        print "Please fix this manually before attempting again."
+        print "Build command used:"
+        for p in compile_command: print p,
+        print f
+        print ""
+        print "Aborting."
+        sys.exit(3)
+    print "    * " + f + " ... OK"
+
+print ""
+print "All files compile successfully. Starting imports analysis now."
 print ""
 
 tmp_directory = tempfile.mkdtemp()
