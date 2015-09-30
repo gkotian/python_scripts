@@ -316,7 +316,6 @@ def analyseFile(file_orig, compile_command, tmp_directory):
                             in_import_stmt = True
                             rex = re.compile(r'private\s+')
                             orig_line = rex.sub('', orig_line)
-                            errors.add("    * line " + str(line_num) + ": private import found")
                         elif (three_parts[0] == "public"):
                             # It's a 'public import' - also valid import statement.
                             in_import_stmt = True
@@ -353,9 +352,6 @@ def analyseFile(file_orig, compile_command, tmp_directory):
         # Revert to original file
         shutil.copyfile(file_copy, file_orig)
     else:
-        # Clear all collected errors as those have been taken care of
-        errors = set()
-
         # Update the file copy with the modified version
         shutil.copyfile(file_orig, file_copy)
 
