@@ -544,17 +544,27 @@ else:
 tmp_directory = tempfile.mkdtemp()
 
 files_done = 0
+files_modified = 0
+files_with_suggestions = 0
 
 for f in files:
     updateProgress(files_done / float(total_files))
 
     errors = set()
 
+    # Make a temporary copy of the file
+    tmp_file = tmp_directory + '/tmp_file'
+    shutil.copyfile(f, tmp_file)
+
     errors = analyseFile(f, compile_command, tmp_directory)
 
     files_done += 1
 
+    if not filecmp.cmp(f, tmp_file):
+        files_modified += 1
+
     if (len(errors)):
+        files_with_suggestions += 1
         removeProgressBar()
 
         print f + ":"
@@ -562,8 +572,11 @@ for f in files:
             print e
         print ""
 
-updateProgress(1.0)
+removeProgressBar()
 
 print ""
+print "Number of files analysed: " + str(total_files)
+print "Number of files automatically modified: " + str(files_modified)
+print "Number of files with suggestions: " + str(files_with_suggestions)
 shutil.rmtree(tmp_directory)
 
