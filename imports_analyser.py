@@ -252,7 +252,10 @@ def analyseFile(file_orig, compile_command, tmp_directory):
     return_code = compileFile(file_orig, compile_command, [])
 
     if return_code != 0:
-        errors.add("    ****** BUILD FAILURE!! ******")
+        # If compilation fails at this stage, it means that some modification made to another file
+        # previously has caused a problem in this file. This is reason enough to abort and call for
+        # manual intervention.
+        errors.add("BUILD FAILURE")
         return errors
 
     in_import_stmt = False
@@ -581,8 +584,20 @@ for f in files:
         files_modified += 1
 
     if (len(errors)):
-        files_with_suggestions += 1
         removeProgressBar()
+
+        if "BUILD FAILURE" in errors:
+            print ("One or more changes made in one of the " + str(files_modified) +
+                   " modified files has caused a build failure in:")
+            print "    " + f
+            print ("Please identify this change(s), revert only the relevant change(s), and add " +
+                   "that file to the skiplist.")
+            print "This will prevent the same modification(s) from being performed in the next run."
+            print ""
+            print "Aborting."
+            sys.exit(4)
+
+        files_with_suggestions += 1
 
         print f + ":"
         for e in errors:
