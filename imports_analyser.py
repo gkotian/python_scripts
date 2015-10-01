@@ -85,13 +85,14 @@ def getCompileCommand(cwd):
 #       filename = the file to be compiled
 #       compile_command = command to be used for the compilation
 #       debug_flags = set of additional debug flags present in the file
+#       save_stderr = whether to save stderr output or not
 #
 #   Returns:
 #       the return code of the result of compilation
 #
 ####################################################################################################
 
-def compileFile(filename, compile_command, debug_flags):
+def compileFile(filename, compile_command, debug_flags, save_stderr=False):
     local_compile_command = compile_command[:]
 
     for flag in debug_flags:
@@ -100,7 +101,8 @@ def compileFile(filename, compile_command, debug_flags):
     local_compile_command.append(filename)
 
     with open(os.devnull, 'w') as devnull:
-        return_code = subprocess.call(local_compile_command, stdout=devnull, stderr=devnull)
+        stderr_file = open(tmp_directory + "/stderr.txt", 'w') if save_stderr else devnull
+        return_code = subprocess.call(local_compile_command, stdout=devnull, stderr=stderr_file)
 
     return return_code
 
