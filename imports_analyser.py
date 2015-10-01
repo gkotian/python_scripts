@@ -503,19 +503,36 @@ if not os.path.isdir(cwd + "/src"):
     print "'" + cwd + "/src' doesn't exist. Aborting."
     sys.exit(1)
 
+files_to_skip = set()
+
+if os.path.isfile(cwd + "/skiplist.txt"):
+    with open(cwd + "/skiplist.txt", 'r') as in_file:
+        for line in in_file:
+            line = line.strip()
+            if not os.path.isfile(line):
+                print "Skiplist file '" + line + "' not found. Will ignore."
+            else:
+                if not os.path.isabs(line):
+                    line = cwd + "/" + line
+                files_to_skip.add(line)
+
 files = []
 
 for root, subdirs, filenames in os.walk(cwd + "/src"):
     for filename in fnmatch.filter(filenames, "*.d"):
-        files.append(os.path.join(root, filename))
+        full_file_path = os.path.join(root, filename)
+        if not full_file_path in files_to_skip:
+            files.append(os.path.join(root, filename))
 
-total_files = len(files)
-
-if (total_files == 0):
-    print "No D files found under '" + cwd + "/src'. Aborting."
+if (len(files) == 0):
+    print "No D files to analyse. Aborting."
     sys.exit(2)
 
-print "Found " + str(total_files) + " D files in '" + cwd + "/src'"
+total_files = len(files) + len(files_to_skip)
+
+print "Total D files found : " + str(total_files)
+print "Files to skip       : " + str(len(files_to_skip))
+print "Files to analyse    : " + str(len(files))
 print ""
 
 compile_command = getCompileCommand(cwd)
