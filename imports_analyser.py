@@ -196,6 +196,69 @@ def searchAndDeleteFirstImport(imp, skip_count, filename):
 
 ####################################################################################################
 #
+#   Function that attempts to automatically perform selective imports. It is called when it is known
+#   that an import is not used within the file, but removing it causes a build failure. The symbols
+#   to be selectively imported are gathered from the stderr output of the failed build.
+#
+#   Params:
+#       filename = the file being analysed
+#       symbol = symbol from which selective imports are to be attempted
+#       compile_command = command to be used for the compilation
+#       debug_flags = set of additional debug flags present in the file
+#
+#   Returns:
+#       whether the attempt to perform selective imports was successful or not
+#
+####################################################################################################
+
+def attemptSelectiveImports(filename, symbol, compile_command, debug_flags):
+    # Make a backup copy of the file
+    file_orig = tmp_directory + '/selective_imports_bak_file'
+    shutil.copyfile(filename, file_orig)
+
+    symbols_to_import = set()
+
+    with open(tmp_directory + "/stderr.txt", 'r') as in_file:
+        for line in in_file:
+            matcher = r'.*Error: undefined identifier (.*)'
+            m = re.search(matcher, line)
+            if m:
+                symbols_to_import.add(m.group(1));
+
+    csv_symbols_to_import = ""
+    for s in symbols_to_import:
+        csv_symbols_to_import += s + ", "
+    # Remove the extra ', ' added at the end
+    csv_symbols_to_import = csv_symbols_to_import.rstrip()
+    csv_symbols_to_import = csv_symbols_to_import.rstrip(',')
+
+    tmp_file_tuple = tempfile.mkstemp()
+    tmp_file = tmp_file_tuple[1]
+
+    with open(filename, 'r') as in_file, open(tmp_file, 'w') as out_file:
+        for line in in_file:
+            matcher = r'^import (.*)' + re.escape(symbol) + r';'
+            m = re.search(matcher, line)
+            if m:
+                new_import_line = "import " + m.group(1) + symbol + " : " + csv_symbols_to_import + ";"
+                line = re.sub(matcher, new_import_line, line)
+
+            out_file.write(line)
+
+    shutil.move(tmp_file, filename)
+
+    return_code = compileFile(filename, compile_command, debug_flags)
+
+    if return_code != 0:
+        # The selective imports didn't do the trick, so revert to the original
+        shutil.copyfile(file_orig, filename)
+        return False
+
+    return True
+
+
+####################################################################################################
+#
 #   Function to gather all symbols of interest in the given line.
 #
 #   Params:
@@ -408,12 +471,14 @@ def analyseFile(file_orig, compile_command, tmp_directory):
                 symbol_del_fail.add(symbol)
                 continue;
 
-            return_code = compileFile(file_orig, compile_command, debug_flags)
+            return_code = compileFile(file_orig, compile_command, debug_flags, True)
 
             if return_code != 0:
                 # Revert
                 shutil.copyfile(file_copy, file_orig)
-                symbol_del_fail.add(symbol)
+
+                if not attemptSelectiveImports(file_orig, symbol, compile_command, debug_flags):
+                    symbol_del_fail.add(symbol)
             else:
                 shutil.copyfile(file_orig, file_copy)
 
