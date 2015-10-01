@@ -127,8 +127,12 @@ def searchAndDeleteSymbolImport(symbol, filename):
 
             if ('import' in line) and (symbol in line) and (';' in line):
                 if (',' not in line):
+                    # This is the only symbol imported in this line, so this whole line can be
+                    # deleted
                     skip_line = True
                 else:
+                    # There are other symbols also imported in this line, so we must delete only the
+                    # symbol we're looking for
                     if (':' in line):
                         begin_matcher = r'\s' + re.escape(symbol) + r'\s*,\s*'
                         middle_matcher = r',\s*' + re.escape(symbol) + r'\s*,\s*'
@@ -610,5 +614,6 @@ print ""
 print "Number of files analysed: " + str(total_files)
 print "Number of files automatically modified: " + str(files_modified)
 print "Number of files with suggestions: " + str(files_with_suggestions)
+
 shutil.rmtree(tmp_directory)
 
