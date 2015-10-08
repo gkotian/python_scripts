@@ -285,6 +285,14 @@ def gatherSymbols(line):
     if (":" in line):
         # Selective import statement, gather all symbols after the colon
         symbols = line.split(':')[1].split(',')
+    elif ("=" in line):
+        # Named import statement. First remove the 'import' keyword in the beginning, if it exists
+        if line.startswith('import'):
+            line = line[6:]
+
+        # Gather the symbol before the equals sign
+        # We need to do an explicit 'split()' at the end to convert the single symbol to a list
+        symbols = line.split('=')[0].split()
     else:
         # Regular import statement, gather a single symbol, i.e. the module name
         # We need to do an explicit 'split()' at the end to convert the single symbol to a list
