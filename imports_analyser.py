@@ -284,7 +284,6 @@ def gatherSymbols(line):
 
     if (":" in line):
         # Selective import statement, gather all symbols after the colon
-        module = line.split(':')[0];
         symbols = line.split(':')[1].split(',')
     else:
         # Regular import statement, gather a single symbol, i.e. the module name
