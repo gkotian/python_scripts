@@ -484,8 +484,11 @@ def analyseFile(file_orig, compile_command, tmp_directory):
                 # Revert
                 shutil.copyfile(file_copy, file_orig)
 
-                if not attemptSelectiveImports(file_orig, symbol, compile_command, debug_flags):
+                if args['library']:
                     symbol_del_fail.add(symbol)
+                else:
+                    if not attemptSelectiveImports(file_orig, symbol, compile_command, debug_flags):
+                        symbol_del_fail.add(symbol)
             else:
                 shutil.copyfile(file_orig, file_copy)
 
@@ -577,6 +580,11 @@ def makeFirstPassCheck(files, compile_command):
 #    Execution starts here! [main :)]
 #
 ####################################################################################################
+
+parser = argparse.ArgumentParser(usage='./%(prog)s [ARGUMENTS]', description='Imports Analyser')
+parser.add_argument('-l', '--library', action='store_true', required = False,
+    default = False, help = 'Do not attempt selective imports (bug # 314)')
+args = vars(parser.parse_args())
 
 cwd = os.getcwd()
 
