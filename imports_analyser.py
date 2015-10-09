@@ -682,6 +682,11 @@ for f in files:
             print ("One or more changes made in one of the " + str(files_modified) +
                    " modified files has caused a build failure in:")
             print "    " + f
+            print ""
+            print "Build command used:"
+            for p in compile_command: print p,
+            print f
+            print ""
             print ("Please identify this change(s), revert only the relevant change(s), and add " +
                    "that file to the skiplist.")
             print "This will prevent the same modification(s) from being performed in the next run."
