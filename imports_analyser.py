@@ -644,12 +644,14 @@ if not failed_file:
 else:
     print "Making a first-pass check to see if all files compile ... FAILED"
     print ""
+
     print "File '" + failed_file + "' failed to compile."
     print "Please fix this manually before attempting again."
     print "Build command used:"
     for p in compile_command: print p,
     print failed_file
     print ""
+
     print "Aborting."
     sys.exit(3)
 
@@ -683,14 +685,17 @@ for f in files:
                    " modified files has caused a build failure in:")
             print "    " + f
             print ""
+
             print "Build command used:"
             for p in compile_command: print p,
             print f
             print ""
+
             print ("Please identify this change(s), revert only the relevant change(s), and add " +
                    "that file to the skiplist.")
             print "This will prevent the same modification(s) from being performed in the next run."
             print ""
+
             print "Aborting."
             sys.exit(4)
 
