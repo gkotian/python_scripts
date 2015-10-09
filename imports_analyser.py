@@ -467,7 +467,13 @@ def analyseFile(file_orig, compile_command, tmp_directory):
 
     shutil.copyfile(file_orig, file_copy)
 
-    symbols_not_seen = set(imported_symbols) - symbols_seen
+    # Some symbols should always be marked as seen. This is important for import statements like:
+    #     import tango.transition
+    # where 'transition' may not be present in the file, but this import statement shouldn't be
+    # removed.
+    symbols_always_seen = ['transition', 'Test']
+
+    symbols_not_seen = set(imported_symbols) - symbols_seen - set(symbols_always_seen)
     if (len(symbols_not_seen)):
         symbol_del_fail = set()
 
