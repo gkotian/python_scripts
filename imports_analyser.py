@@ -335,6 +335,7 @@ def analyseFile(file_orig, compile_command, tmp_directory):
         return errors
 
     in_import_stmt = False
+    is_public_import = False
 
     imports = []
     imported_symbols = []
@@ -398,11 +399,15 @@ def analyseFile(file_orig, compile_command, tmp_directory):
                         elif (three_parts[0] == "public"):
                             # It's a 'public import' - also valid import statement.
                             in_import_stmt = True
+                            is_public_import = True
 
             if (in_import_stmt):
-                imported_symbols += gatherSymbols(line)
+                # Don't gather symbols from public imports, so that public imports are never touched
+                if not is_public_import:
+                    imported_symbols += gatherSymbols(line)
                 if (";" in line):
                     in_import_stmt = False
+                    is_public_import = False
                 if (len(line)):
                     # Get rid of the last character (',' or ';')
                     line = line.rstrip(',;')
