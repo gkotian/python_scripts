@@ -219,8 +219,8 @@ def attemptSelectiveImports(filename, symbol, compile_command, debug_flags):
     symbols_to_import = set()
 
     with open(tmp_directory + "/stderr.txt", 'r') as in_file:
+        matcher = r'.*Error: undefined identifier (.*)'
         for line in in_file:
-            matcher = r'.*Error: undefined identifier (.*)'
             m = re.search(matcher, line)
             if m:
                 symbols_to_import.add(m.group(1));
