@@ -181,7 +181,7 @@ def searchAndDeleteFirstImport(imp, skip_count, filename):
             if (not done) and ("import" in line) and (imp in line):
                 if (skip_count > 0):
                     skip_count -= 1
-                    out_file.write(line);
+                    out_file.write(line)
                 else:
                     # The current line is not written to the output file (effectively deleting it).
 
@@ -189,7 +189,7 @@ def searchAndDeleteFirstImport(imp, skip_count, filename):
                     # to the output file.
                     done = True
             else:
-                out_file.write(line);
+                out_file.write(line)
 
     shutil.move(tmp_file, filename)
 
@@ -223,7 +223,7 @@ def attemptSelectiveImports(filename, symbol, compile_command, debug_flags):
         for line in in_file:
             m = re.search(matcher, line)
             if m:
-                symbols_to_import.add(m.group(1));
+                symbols_to_import.add(m.group(1))
 
     csv_symbols_to_import = ""
     for s in symbols_to_import:
@@ -487,7 +487,7 @@ def analyseFile(file_orig, compile_command, tmp_directory):
 
             if filecmp.cmp(file_orig, file_copy):
                 symbol_del_fail.add(symbol)
-                continue;
+                continue
 
             return_code = compileFile(file_orig, compile_command, debug_flags, True)
 
@@ -639,7 +639,7 @@ compile_command = getCompileCommand(cwd)
 
 print "Making a first-pass check to see if all files compile ..."
 
-failed_file = makeFirstPassCheck(files, compile_command);
+failed_file = makeFirstPassCheck(files, compile_command)
 sys.stdout.write("\033[1A") # Go up one line
 
 if not failed_file:
