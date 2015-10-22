@@ -22,6 +22,30 @@ import time
 
 ####################################################################################################
 #
+#   Function to provide project specific compilation flags.
+#
+#   Params:
+#       cwd = the current working directory
+#
+#   Returns:
+#       all project specific flags needed for compilation
+#
+####################################################################################################
+
+def getProjectSpecificFlags(cwd):
+    project_specific_flags = set()
+
+    if os.path.isfile(cwd + "/extracompileflags.txt"):
+        with open(cwd + "/extracompileflags.txt", 'r') as in_file:
+            for line in in_file:
+                line = line.strip()
+                project_specific_flags.add(line)
+
+    return list(project_specific_flags)
+
+
+####################################################################################################
+#
 #   Function to form the command used for compilation.
 #
 #   Params:
@@ -44,6 +68,8 @@ def getCompileCommand(cwd):
             if os.path.isdir(full_path):
                 submods.append(full_path)
 
+    project_specific_flags = getProjectSpecificFlags(cwd)
+
     compile_command = []
 
     # For D1
@@ -53,6 +79,9 @@ def getCompileCommand(cwd):
     compile_command.append("-o-")
     compile_command.append("-unittest")
     compile_command.append("-version=UnitTest")
+
+    for flag in project_specific_flags:
+        compile_command.append(flag)
 
     # # For a test D2 file
     # compile_command.append("gdc")
