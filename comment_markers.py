@@ -188,6 +188,43 @@ def removeProgressBar():
 
 ####################################################################################################
 #
+#   Function to get a set of filenames present in the given file.
+#
+#   Params:
+#       cwd = the current working directory
+#       filename = file containing the locations of other files
+#
+#   Returns:
+#       a set containing the absolute paths of all files found
+#
+####################################################################################################
+
+def getFiles(cwd, filename):
+    files = set()
+
+    file_to_parse = cwd + "/" + filename
+
+    if not os.path.isfile(file_to_parse):
+        return files
+
+    with open(file_to_parse, 'r') as in_file:
+        line_num = 0
+        for line in in_file:
+            line_num += 1
+            line = line.strip()
+            if not os.path.isfile(line):
+                print ("File '" + line + "' (line " + str(line_num) + " in " + filename +
+                    ") doesn't exist. Will ignore.")
+            else:
+                if not os.path.isabs(line):
+                    line = cwd + "/" + line
+                files.add(line)
+
+    return files
+
+
+####################################################################################################
+#
 #    Execution starts here! [main :)]
 #
 ####################################################################################################
@@ -200,18 +237,7 @@ args = vars(parser.parse_args())
 
 cwd = os.getcwd()
 
-files_to_skip = set()
-
-if os.path.isfile(cwd + "/skiplist.txt"):
-    with open(cwd + "/skiplist.txt", 'r') as in_file:
-        for line in in_file:
-            line = line.strip()
-            if not os.path.isfile(line):
-                print "Skiplist file '" + line + "' not found. Will ignore."
-            else:
-                if not os.path.isabs(line):
-                    line = cwd + "/" + line
-                files_to_skip.add(line)
+files_to_skip = getFiles(cwd, "skiplist.txt")
 
 files = []
 
