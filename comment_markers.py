@@ -192,9 +192,10 @@ def removeProgressBar():
 #
 ####################################################################################################
 
-parser = argparse.ArgumentParser(usage='./%(prog)s [ARGUMENTS]', description='Imports Analyser')
-parser.add_argument('-l', '--library', action='store_true', required = False,
-    default = False, help = 'Do not attempt selective imports (bug # 314)')
+parser = argparse.ArgumentParser(usage='%(prog)s [ARGUMENTS]', description='Comments Formatter')
+parser.add_argument('-n', '--non-interactive', action='store_true',
+                    required = False, default = False,
+                    help = 'Run for all files without waiting for user input')
 args = vars(parser.parse_args())
 
 cwd = os.getcwd()
@@ -269,10 +270,13 @@ for f in files:
             fixed_line = '    ***************************************************************************/'
             performAutomaticFixes(f, lines_to_fix, fixed_line)
 
-        updateProgress(files_done / float(total_files))
-        sys.stdout.write('\r')
-        sys.stdout.write('\033[1A')
-        dummy = getpass.getpass("")
+        # Note 'non_interactive' instead of 'non-interactive' since the hyphen is automatically
+        # converted to an underscore
+        if not args['non_interactive']:
+            updateProgress(files_done / float(total_files))
+            sys.stdout.write('\r')
+            sys.stdout.write('\033[1A')
+            dummy = getpass.getpass("")
 
 removeProgressBar()
 
