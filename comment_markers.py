@@ -237,25 +237,28 @@ args = vars(parser.parse_args())
 
 cwd = os.getcwd()
 
+files = set()
+
+if os.path.isfile(cwd + "/restrictlist.txt"):
+    files = getFiles(cwd, "restrictlist.txt")
+    print "Files to restrict   : " + str(len(files))
+else:
+    for root, subdirs, filenames in os.walk(cwd):
+        for filename in fnmatch.filter(filenames, "*.d"):
+            files.add(os.path.join(root, filename))
+    print "Total D files found : " + str(len(files))
+
 files_to_skip = getFiles(cwd, "skiplist.txt")
+print "Files to skip       : " + str(len(files_to_skip))
+files -= files_to_skip
 
-files = []
-
-for root, subdirs, filenames in os.walk(cwd):
-    for filename in fnmatch.filter(filenames, "*.d"):
-        full_file_path = os.path.join(root, filename)
-        if not full_file_path in files_to_skip:
-            files.append(os.path.join(root, filename))
-
-if (len(files) == 0):
+if not files:
     print "No D files to analyse. Aborting."
     sys.exit(2)
 
-total_files = len(files) + len(files_to_skip)
+total_files = len(files)
 
-print "Total D files found : " + str(total_files)
-print "Files to skip       : " + str(len(files_to_skip))
-print "Files to analyse    : " + str(len(files))
+print "Files to analyse    : " + str(total_files)
 print ""
 
 tmp_directory = tempfile.mkdtemp()
