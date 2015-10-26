@@ -53,6 +53,31 @@ def inspect_big_comment_marker(line, indent):
 
 ####################################################################################################
 #
+#   Function to automatically fix certain lines in the given file.
+#
+#   Params:
+#       file_orig = the file on which to perform the automatic fixes
+#       lines_to_fix = set containing the numbers of the lines to be fixed
+#       fixed_line = the replacement line (i.e. the correct line)
+#
+####################################################################################################
+
+def performAutomaticFixes(file_orig, lines_to_fix, fixed_line):
+    # Make a copy of the file
+    file_copy = tmp_directory + '/file_copy'
+    shutil.copyfile(file_orig, file_copy)
+
+    with open(file_copy, 'r') as in_file, open(file_orig, 'w') as out_file:
+        line_num = 0
+        for line in in_file:
+            line_num += 1
+            if line_num in lines_to_fix:
+                line = fixed_line + '\n'
+            out_file.write(line)
+
+
+####################################################################################################
+#
 #   Function to analyse a file to determine which imports may not be necessary.
 #   It also acts upon the determined suggestions and makes changes to the file as necessary (the
 #   file is compiled after every edit and if the compilation fails, it is rolled back to its most
@@ -206,8 +231,12 @@ print "Files to skip       : " + str(len(files_to_skip))
 print "Files to analyse    : " + str(len(files))
 print ""
 
+tmp_directory = tempfile.mkdtemp()
+
 files_done = 0
 files_with_errors = 0
+lines_auto_fixed = 0
+files_with_auto_fixed_lines = 0
 
 for f in files:
     updateProgress(files_done / float(total_files))
@@ -218,15 +247,27 @@ for f in files:
 
     if lines_with_errors:
         files_with_errors += 1
-        removeProgressBar()
+        lines_to_fix = set()
 
+        removeProgressBar()
         print f + ':'
+
         for line in sorted(lines_with_errors):
             print "    * line " + str(line)
             for error in lines_with_errors[line]:
-                print "        - " + error
+                if error == 'incorrect number of leading spaces (expected 4, found 5)':
+                    lines_to_fix.add(line)
+                    print "        - <auto fixed>"
+                else:
+                    print "        - " + error
 
         print ''
+
+        if lines_to_fix:
+            lines_auto_fixed += len(lines_to_fix)
+            files_with_auto_fixed_lines += 1
+            fixed_line = '    ***************************************************************************/'
+            performAutomaticFixes(f, lines_to_fix, fixed_line)
 
         updateProgress(files_done / float(total_files))
         sys.stdout.write('\r')
@@ -237,4 +278,9 @@ removeProgressBar()
 
 print 'Number of files analysed: ' + str(total_files)
 print 'Files with errors: ' + str(files_with_errors)
+if lines_auto_fixed > 0:
+    print ('Lines automatically fixed: ' + str(lines_auto_fixed) + ' (in ' +
+        str(files_with_auto_fixed_lines) + ' files)')
+
+shutil.rmtree(tmp_directory)
 
