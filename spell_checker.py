@@ -56,7 +56,7 @@ def analyse_file(filename, checker):
     elif filename.endswith(".vim"):
         pattern = re.compile(r'^\s*?".*?$', re.MULTILINE)
         text_list = re.findall(pattern, contents)
-    elif filename.endswith(".txt") or filename.endswith(".md") or filename.endswith(".rst"):
+    elif filename.endswith(".txt") or filename.endswith(".markdown") or filename.endswith(".md") or filename.endswith(".rst"):
         text_list = contents.split()
     else:
         return errors
@@ -138,8 +138,8 @@ def get_valid_words(dictionary, whitelist=""):
 
 def filter_supported_files(all_files):
     supported_extensionless_files = [ 'Makefile' ]
-    supported_extensioned_file_types = [ 'c', 'cc', 'cpp', 'd', 'md', 'py', 'rst', 'sh', 'txt',
-                                         'vim' ]
+    supported_extensioned_file_types = [ 'c', 'cc', 'cpp', 'd', 'markdown', 'md', 'py', 'rst', 'sh',
+                                         'txt', 'vim' ]
 
     filtered_files = []
 
