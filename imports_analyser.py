@@ -248,11 +248,24 @@ def attemptSelectiveImports(filename, symbol, compile_command, debug_flags):
     symbols_to_import = set()
 
     with open(tmp_directory + "/stderr.txt", 'r') as in_file:
-        matcher = r'.*Error: undefined identifier (.*)'
+        # Example error:
+        #     File.d(3): Error: undefined identifier ID, did you mean function myID?
+        matcher_with_suggestion = r'.*Error: undefined identifier (.*), did you mean .*'
+
+        # Example error:
+        #     File.d(3): Error: undefined identifier ID
+        matcher_without_suggestion = r'.*Error: undefined identifier (.*)'
+
         for line in in_file:
-            m = re.search(matcher, line)
-            if m:
-                symbols_to_import.add(m.group(1))
+            # Note that you must apply 'matcher_with_suggestion' first, because
+            # 'matcher_without_suggestion' will match all with_suggestion cases as well
+            m1 = re.search(matcher_with_suggestion, line)
+            if m1:
+                symbols_to_import.add(m1.group(1))
+            else:
+                m2 = re.search(matcher_without_suggestion, line)
+                if m2:
+                    symbols_to_import.add(m2.group(1))
 
     csv_symbols_to_import = ""
     for s in symbols_to_import:
