@@ -6,3 +6,9 @@ foxtrot
 gold
 hotel
 india
+john
+kate
+lima
+metro
+nigeria
+oscar
