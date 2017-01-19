@@ -1,0 +1,13 @@
+alpha
+bravo
+charlie
+echo
+foxtrot
+gold
+hotel
+india
+john
+kate
+lima
+nigeria
+oscar
