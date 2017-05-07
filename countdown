@@ -4,21 +4,27 @@ import argparse
 import re
 import subprocess
 import sys
-import time
 
-from datetime import timedelta
+from datetime import datetime, time, timedelta
+from time import sleep
 
-def calculate_seconds(time_str):
-    # Plain integers are assumed to be seconds
-    try: 
-        seconds = int(time_str)
-        return seconds
+def seconds_until(time_str):
+    try:
+        target_time = time(*(map(int, time_str.split(':'))))
     except ValueError:
-        pass
+        return -1
 
-    if time_str == '0s':
-        return 0
+    target_datetime = datetime.combine(datetime.today(), target_time)
+    seconds_delta = int((target_datetime - datetime.now()).total_seconds())
 
+    if seconds_delta < 0:
+        # We're already past the target time today, so we'll countdown until the
+        # given time the next day
+        seconds_delta = 86400 + seconds_delta
+
+    return seconds_delta
+
+def seconds_in(time_str):
     # This regular expression should be improved. It currently allows erroneous
     # input like '24hf' to get through.
     regex = re.compile(
@@ -48,11 +54,34 @@ def calculate_seconds(time_str):
 
     return seconds
 
+def calculate_seconds(time_str):
+    # Plain integers are assumed to be seconds
+    try: 
+        seconds = int(time_str)
+        return seconds
+    except ValueError:
+        pass
+
+    if time_str == '0s':
+        return 0
+
+    if ':' in time_str:
+        seconds = seconds_until(time_str)
+    else:
+        seconds = seconds_in(time_str)
+
+    if seconds > 0:
+        print "Counting down '{}' seconds until '{}'".format(seconds,
+            (datetime.now() + timedelta(seconds=seconds))
+            .strftime('%Y-%m-%d %H:%M:%S'))
+
+    return seconds
+
 # Set up command line arguments
 parser = argparse.ArgumentParser(usage='%(prog)s [ARGUMENTS]',
     description='Start a countdown for the given time duration')
 parser.add_argument('time',
-    help='time duration for which the countdown should run')
+    help='time until or time-duration for which the countdown should run')
 parser.add_argument('message', nargs='?', default='Countdown complete!',
     help='message to be displayed when the countdown completes')
 args = vars(parser.parse_args())
@@ -68,7 +97,7 @@ while seconds > 0:
     h, m = divmod(m, 60)
     sys.stdout.write("%02d:%02d:%02d" % (h, m, s))
     sys.stdout.flush()
-    time.sleep(1.0)
+    sleep(1.0)
     sys.stdout.write("\r\033[K")
     seconds -= 1
 
