@@ -8,6 +8,7 @@ import sys
 from datetime import datetime, time, timedelta
 from time import sleep
 
+
 def seconds_until(time_str):
     try:
         target_time = time(*(map(int, time_str.split(':'))))
@@ -18,11 +19,12 @@ def seconds_until(time_str):
     seconds_delta = int((target_datetime - datetime.now()).total_seconds())
 
     if seconds_delta < 0:
-        # We're already past the target time today, so we'll countdown until the
-        # given time the next day
+        # We're already past the target time today, so we'll countdown until
+        # the given time the next day
         seconds_delta = 86400 + seconds_delta
 
     return seconds_delta
+
 
 def seconds_in(time_str):
     # This regular expression should be improved. It currently allows erroneous
@@ -54,9 +56,10 @@ def seconds_in(time_str):
 
     return seconds
 
+
 def calculate_seconds(time_str):
     # Plain integers are assumed to be seconds
-    try: 
+    try:
         seconds = int(time_str)
         return seconds
     except ValueError:
