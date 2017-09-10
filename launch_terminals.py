@@ -2,6 +2,7 @@
 
 import argparse
 import ConfigParser
+import os
 import subprocess
 
 parser = argparse.ArgumentParser(description='Script to help launch terminals')
@@ -18,7 +19,9 @@ config.readfp(open(args['config_file']))
 for section in config.sections():
 
     directory = config.get(section, "directory")
-    # TODO: confirm that directory exists
+    if not os.path.isdir(directory):
+        print "Error with config property '{}.directory'".format(section)
+        print "Directory '{}' doesn't exist".format(directory)
 
     commands = config.get(section, "commands")
 
