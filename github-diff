@@ -1,0 +1,24 @@
+#!/usr/bin/python
+
+import argparse
+import git
+import os
+
+# Set up command line arguments
+parser = argparse.ArgumentParser(usage='%(prog)s [ARGUMENTS]',
+    description='Generate a GitHub comment friendly diff')
+parser.add_argument('commits', default='upstream/master', nargs=2,
+    help="git references for the diff (the second one defaults to HEAD)")
+args = parser.parse_args()
+
+if not git.in_repo():
+    die("Not a git repository. Aborting")
+
+print(args)
+
+# try:
+#     git.run_command('diff', 'HEAD')
+# except git.GitException as e:
+
+# str = "hey"
+# os.system("echo '{}' | xclip -selection clipboard".format(str))
