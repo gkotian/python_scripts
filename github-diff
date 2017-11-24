@@ -3,18 +3,34 @@
 import argparse
 import git
 import os
+import sys
+
+
+def die(msg):
+    print msg
+    sys.exit(1)
+
 
 # Set up command line arguments
 parser = argparse.ArgumentParser(usage='%(prog)s [ARGUMENTS]',
     description='Generate a GitHub comment friendly diff')
-parser.add_argument('commits', default='upstream/master', nargs=2,
-    help="git references for the diff (the second one defaults to HEAD)")
+parser.add_argument('commits', default='upstream/master', nargs='+',
+    help='git references for the diff (the second one defaults to HEAD)')
 args = parser.parse_args()
 
 if not git.in_repo():
-    die("Not a git repository. Aborting")
+    die('Not a git repository. Aborting')
 
-print(args)
+commit1 = args.commits[0]
+if len(args.commits) > 2:
+    die('Too many arguments. Aborting')
+elif len(args.commits) == 2:
+    commit2 = args.commits[1]
+else:
+    commit2 = 'HEAD'
+
+print('commit1 = {}'.format(commit1))
+print('commit2 = {}'.format(commit2))
 
 # try:
 #     git.run_command('diff', 'HEAD')
