@@ -1,40 +1,59 @@
 #!/usr/bin/python
 
-import argparse
-import git
+
+################################################################################
+#
+#   Description:
+#   ------------
+#       Converts the git-diff output into an expandable GitHub comment form, and
+#       puts into the system clipboard to allow for easy pasting into the GitHub
+#       comment.
+#
+#   Usage:
+#   ------
+#   (first place this script in one of the directories in $PATH)
+#       $> cd path/to/repo/where/you/want/to/diff
+#       $> PAGER= git diff [commits range] | github-diff
+#       now go to GitHub and paste into the comment box
+#
+################################################################################
+
+
 import os
 import sys
+import tempfile
 
 
 def die(msg):
-    print msg
+    print(msg)
     sys.exit(1)
 
 
-# Set up command line arguments
-parser = argparse.ArgumentParser(usage='%(prog)s [ARGUMENTS]',
-    description='Generate a GitHub comment friendly diff')
-parser.add_argument('commits', default='upstream/master', nargs='+',
-    help='git references for the diff (the second one defaults to HEAD)')
-args = parser.parse_args()
+tmp_file = tempfile.TemporaryFile()
+tmp_file.write('<details>\n')
+tmp_file.write('<summary>Diff</summary>\n')
 
-if not git.in_repo():
-    die('Not a git repository. Aborting')
+# A blank line is necessary after the summary to make sure that the details
+# section gets properly formatted
+tmp_file.write('\n')
 
-commit1 = args.commits[0]
-if len(args.commits) > 2:
-    die('Too many arguments. Aborting')
-elif len(args.commits) == 2:
-    commit2 = args.commits[1]
-else:
-    commit2 = 'HEAD'
+tmp_file.write('```diff\n')
 
-print('commit1 = {}'.format(commit1))
-print('commit2 = {}'.format(commit2))
+diff_has_something = False
 
-# try:
-#     git.run_command('diff', 'HEAD')
-# except git.GitException as e:
+for line in sys.stdin:
+    diff_has_something = True
+    tmp_file.write(line)
 
-# str = "hey"
-# os.system("echo '{}' | xclip -selection clipboard".format(str))
+if not diff_has_something:
+    die('Empty diff, nothing to do')
+
+tmp_file.write('```')
+
+# Seek to the beginning
+tmp_file.seek(0)
+
+contents = tmp_file.read()
+os.system("echo '{}' | xclip -selection clipboard".format(contents))
+
+print("GitHub comment-friendly diff copied to clipboard")
