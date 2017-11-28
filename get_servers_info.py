@@ -1,13 +1,25 @@
 #!/usr/bin/python
 
 import argparse
+import sys
+
 
 def die(msg):
     print(msg)
     sys.exit(1)
 
 
-def isLineOfInterest(line_header, app_being_searched, region_being_searched):
+def filterServersByRegion(all_servers, region):
+    filtered_servers = []
+
+    for s in all_servers:
+        if s.split('-')[0] == region:
+            filtered_servers.append(s)
+
+    return filtered_servers
+
+
+def getInterestLevelOfLine(line_header, app_being_searched, region_being_searched):
     line_header = line_header.lower()
 
     # the line header can be either `appname` or `xx-appname` where xx is the
@@ -15,7 +27,7 @@ def isLineOfInterest(line_header, app_being_searched, region_being_searched):
     lh_parts = line_header.split('-')
 
     if len(lh_parts) == 1:
-        region = 'NA'
+        region = 'NOT_PRESENT_IN_LINE'
         app = lh_parts[0]
     else:
         region = lh_parts[0]
@@ -23,12 +35,15 @@ def isLineOfInterest(line_header, app_being_searched, region_being_searched):
 
     if region_being_searched == 'ALL':
         if app == app_being_searched:
-            return True
+            return 'FULL'
     else:
-        if app == app_being_searched and region == region_being_searched:
-            return True
+        if app == app_being_searched:
+            if region == region_being_searched:
+                return 'FULL'
+            elif region == 'NOT_PRESENT_IN_LINE':
+                return 'PARTIAL'
 
-    return False
+    return 'UNINTERESTING'
 
 
 parser = argparse.ArgumentParser(usage='%(prog)s [ARGUMENTS]',
@@ -63,12 +78,26 @@ with open(cssh_config_file, 'r') as in_file:
 
         parts = line.split()
 
-        if isLineOfInterest(parts[0], app, region):
+        interest_level = getInterestLevelOfLine(parts[0], app, region)
+
+        if interest_level == 'FULL':
             final_list += parts[1:]
             if region != 'ALL':
-                # when looking for a specific region, we only need to find a
-                # single line
+                # When looking for a specific region, we only need to find the
+                # first matching line.
                 break
+        elif interest_level == 'PARTIAL':
+            final_list += filterServersByRegion(parts[1:], region)
+            if region != 'ALL':
+                # When looking for a specific region, we only need to find the
+                # first matching line.
+                break
+        else:
+            # The current line is not of interest, so nothing to do.
+            # This empty `else` block has been left here deliberately to
+            # discourage someone from trying to move the `if region != 'ALL':`
+            # checks in the previous two blocks outside.
+            pass
 
 if region == 'ALL':
     print("Found {} server(s) with '{}' across all regions"
