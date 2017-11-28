@@ -7,12 +7,25 @@ def die(msg):
     sys.exit(1)
 
 
-def isLineOfInterest(line_header, app, region):
-    if region == 'ALL':
-        if line_header.split('-')[1] == app:
+def isLineOfInterest(line_header, app_being_searched, region_being_searched):
+    line_header = line_header.lower()
+
+    # the line header can be either `appname` or `xx-appname` where xx is the
+    # region code
+    lh_parts = line_header.split('-')
+
+    if len(lh_parts) == 1:
+        region = 'NA'
+        app = lh_parts[0]
+    else:
+        region = lh_parts[0]
+        app = lh_parts[1]
+
+    if region_being_searched == 'ALL':
+        if app == app_being_searched:
             return True
     else:
-        if line_header.lower() == region + '-' + app:
+        if app == app_being_searched and region == region_being_searched:
             return True
 
     return False
