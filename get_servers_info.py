@@ -34,7 +34,9 @@ else:
 
 final_list = []
 
-with open('cssh_config', 'r') as in_file:
+cssh_config_file='/home/gautam/work/rnd/cssh/cssh_config'
+
+with open(cssh_config_file, 'r') as in_file:
     line_num = 0
     for line in in_file:
         line_num += 1
