@@ -5,6 +5,10 @@ import subprocess
 import sys
 
 
+cssh_config_file='/home/gautam/work/rnd/cssh/cssh_config'
+browser='/usr/bin/google-chrome'
+
+
 def die(msg):
     print(msg)
     sys.exit(1)
@@ -47,11 +51,15 @@ def getInterestLevelOfLine(line_header, app_being_searched, region_being_searche
     return 'UNINTERESTING'
 
 
-parser = argparse.ArgumentParser(usage='%(prog)s [ARGUMENTS]',
+parser = argparse.ArgumentParser(usage='%(prog)s app region [-f]',
     description='blah')
 parser.add_argument('app_and_region', nargs='+', help='app & region')
+parser.add_argument('--launch-foreman', '-f', action='store_true',
+    required = False, default = False,
+    help = 'Launch foreman at the end (to confirm the output)')
 
 args = parser.parse_args()
+
 
 app = args.app_and_region[0]
 if len(args.app_and_region) > 2:
@@ -62,8 +70,6 @@ else:
     region = 'ALL'
 
 final_list = []
-
-cssh_config_file='/home/gautam/work/rnd/cssh/cssh_config'
 
 with open(cssh_config_file, 'r') as in_file:
     line_num = 0
@@ -111,12 +117,14 @@ if len(final_list) > 0:
     for server in final_list:
         print('    {}'.format(server.split('.')[0]))
 
-# Open browser tab with foreman info
-link='https://fm.sociomantic.com/hosts?search=class+~+sociomantic%3A%3Aapplication%3A%3A{}'.format(app)
-if region != 'ALL':
-    link += '+and+location+%3D+{}'.format(region)
+if args['launch_foreman']:
+    link='https://fm.sociomantic.com/hosts?search=class+~+sociomantic%3A%3Aapplication%3A%3A{}'.format(app)
 
-proc = subprocess.Popen(['/usr/bin/google-chrome', link],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-(stdout, stderr) = proc.communicate()
-print('Launched new browser tab to get latest info from foreman')
+    if region != 'ALL':
+        link += '+and+location+%3D+{}'.format(region)
+
+    proc = subprocess.Popen([browser, link],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = proc.communicate()
+
+    print('Launched a new browser tab to get the latest info from foreman')
