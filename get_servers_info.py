@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+import subprocess
 import sys
 
 
@@ -109,3 +110,13 @@ else:
 if len(final_list) > 0:
     for server in final_list:
         print('    {}'.format(server.split('.')[0]))
+
+# Open browser tab with foreman info
+link='https://fm.sociomantic.com/hosts?search=class+~+sociomantic%3A%3Aapplication%3A%3A{}'.format(app)
+if region != 'ALL':
+    link += '+and+location+%3D+{}'.format(region)
+
+proc = subprocess.Popen(['/usr/bin/google-chrome', link],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+(stdout, stderr) = proc.communicate()
+print('Launched new browser tab to get latest info from foreman')
