@@ -58,14 +58,15 @@ parser.add_argument('--launch-foreman', '-f', action='store_true',
     required = False, default = False,
     help = 'Launch foreman at the end (to confirm the output)')
 
-args = parser.parse_args()
+# Make a dictionary of the arguments for convenient indexing
+args = vars(parser.parse_args())
 
 
-app = args.app_and_region[0]
-if len(args.app_and_region) > 2:
+app = args['app_and_region'][0]
+if len(args['app_and_region']) > 2:
     die('Too many arguments. Aborting')
-elif len(args.app_and_region) == 2:
-    region = args.app_and_region[1].lower()
+elif len(args['app_and_region']) == 2:
+    region = args['app_and_region'][1].lower()
 else:
     region = 'ALL'
 
