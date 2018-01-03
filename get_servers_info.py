@@ -27,16 +27,24 @@ def filterServersByRegion(all_servers, region):
 def getInterestLevelOfLine(line_header, app_being_searched, region_being_searched):
     line_header = line_header.lower()
 
-    # the line header can be either `appname` or `xx-appname` where xx is the
-    # region code
-    lh_parts = line_header.split('-')
+    # Split the line header once based on a hyphen in the hope that the first
+    # two characters will be the region code
+    lh_parts = line_header.split('-', 1)
 
     if len(lh_parts) == 1:
+        # There is no hyphen in the line header, so the entire line header is
+        # the app name
         region = 'NOT_PRESENT_IN_LINE'
-        app = lh_parts[0]
+        app = line_header
     else:
-        region = lh_parts[0]
-        app = lh_parts[1]
+        # There is a hyphen in the line header, but we need to confirm whether
+        # the first two characters are a valid region code
+        if lh_parts[0] in ('ap', 'cn', 'eu', 'us'):
+            region = lh_parts[0]
+            app = lh_parts[1]
+        else:
+            region = 'NOT_PRESENT_IN_LINE'
+            app = line_header
 
     if region_being_searched == 'ALL':
         if app == app_being_searched:
