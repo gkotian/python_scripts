@@ -29,7 +29,7 @@ def die(msg):
     sys.exit(1)
 
 
-tmp_file = tempfile.TemporaryFile()
+tmp_file = tempfile.NamedTemporaryFile()
 tmp_file.write('<details>\n')
 tmp_file.write('<summary>Diff</summary>\n')
 
@@ -50,10 +50,12 @@ if not diff_has_something:
 
 tmp_file.write('```')
 
+# TODO: find out why seeking to the beginning is necessary. If I don't do this,
+# I see that only a part of the file (starting from the beginning however) gets
+# copied to the clipboard
 # Seek to the beginning
 tmp_file.seek(0)
 
-contents = tmp_file.read()
-os.system("echo '{}' | xclip -selection clipboard".format(contents))
+os.system("cat '{}' | xclip -selection clipboard".format(tmp_file.name))
 
 print("GitHub comment-friendly diff copied to clipboard")
