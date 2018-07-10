@@ -6,8 +6,8 @@ import subprocess
 import sys
 
 
-cssh_config_file='/home/gautam/work/rnd/cssh/cssh_config'
-browser='/usr/bin/google-chrome'
+cssh_config_file = os.path.expanduser('~/.clusterssh/clusters')
+browser = '/usr/bin/google-chrome'
 
 
 def die(msg):
