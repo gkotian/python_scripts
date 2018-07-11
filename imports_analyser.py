@@ -514,13 +514,18 @@ def analyseFile(file_orig, compile_command, tmp_directory):
 
     shutil.copyfile(file_orig, file_copy)
 
-    # Some symbols should always be marked as seen. This is important for import statements like:
-    #     import tango.transition
-    # where 'transition' may not be present in the file, but this import statement shouldn't be
-    # removed.
-    symbols_always_seen = ['transition', 'Test']
+    # For some symbols, we never attempt to perform selective imports. However, we still see if the
+    # whole import line can be removed.
+    # The corresponding import statements are:
+    #     import krill.channels.Channels;
+    #     import ocean.util.serialize.contiguous.MultiVersionDecorator;
+    #     import ocean.io.Stdout;
+    #     import ocean.transition;
+    #     import ocean.core.Test;
+    non_selective_import_symbols = ['Channels', 'MultiVersionDecorator', 'Stdout', 'transition',
+        'Test']
 
-    symbols_not_seen = set(imported_symbols) - symbols_seen - set(symbols_always_seen)
+    symbols_not_seen = set(imported_symbols) - symbols_seen
     if (len(symbols_not_seen)):
         symbol_del_fail = set()
 
@@ -537,7 +542,10 @@ def analyseFile(file_orig, compile_command, tmp_directory):
                 # Revert
                 shutil.copyfile(file_copy, file_orig)
 
-                if args['library']:
+                if symbol in non_selective_import_symbols:
+                    # Do nothing
+                    pass
+                elif args['library']:
                     symbol_del_fail.add(symbol)
                 else:
                     if not attemptSelectiveImports(file_orig, symbol, compile_command, debug_flags):
