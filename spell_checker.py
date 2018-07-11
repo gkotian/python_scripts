@@ -1,6 +1,27 @@
 #!/usr/bin/python
 
 
+# Dealing with non-auto-fixed lines:
+# ----------------------------------
+#     1. Get the matching egrep command:
+#            $> egrep -rl "^         [\*]{70}\/$" src
+#     2. Open all matching files in vim:
+#            $> CMD='egrep -rl "^         [\*]{70}\/$" src'
+#            $> v `eval ${CMD} | ol`
+#     3. Get the matching vim search command (it'll be very similar to the egrep
+#        command, except that '{' & '}' would need to be escaped as well:
+#            /^         [\*]\{70\}\/$
+#     4. Record a suitable macro, say to @q (ensure that 'n' is the first
+#        character recorded, so that the macro can be run many number of times
+#        with it refusing to run if there are no more matches)
+#     5. Set hidden, so that you can change buffers without saving
+#            :se hidden
+#     6. Run the macro many times in each buffer
+#            :bufdo normal 20@q
+#     7. Save all buffers
+#            :wa 
+
+
 ####################################################################################################
 #
 #   Imports
