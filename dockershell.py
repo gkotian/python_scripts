@@ -134,6 +134,8 @@ parser = argparse.ArgumentParser(
     description='Script to launch a docker container')
 parser.add_argument('-d', '--dockerfile', nargs='?', required=False, default='',
     help='Dockerfile to use')
+parser.add_argument('-r', '--run', nargs='?', required=False, default='',
+    help='Command to run (instead of running a shell) [killing the command midway is non-trivial]')
 args = vars(parser.parse_args())
 
 dockerfile, docker_image_name = get_docker_details(args['dockerfile'])
@@ -160,5 +162,11 @@ command.append('{}:/project'.format(mount_dir))
 command.append('-w')
 command.append('/project')
 command.append(docker_image_name)
-command.append('/bin/bash')
+
+if args['run']:
+    for part in args['run'].split():
+        command.append(part)
+else:
+    command.append('/bin/bash')
+
 subprocess.run(command)

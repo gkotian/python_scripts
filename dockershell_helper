@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# This script is just to make it more convenient to run the dockershell script
+# with the '-r' option. The usual way is to create a symlink to this script as:
+#     ln -sf /path/to/dockershell_helper ~/bin/dockerrun
+# Then use 'dockerrun' directly as:
+#     dockerrun make clean
+
+# Assigning to a temporary variable is necessary to avoid literally passing '$@'
+ARGS="$@"
+
+${HOME}/play/python_scripts/dockershell.py -r "${ARGS}"
