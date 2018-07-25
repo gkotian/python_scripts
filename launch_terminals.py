@@ -18,18 +18,22 @@ config.readfp(open(args['config_file']))
 
 for section in config.sections():
 
-    directory = config.get(section, "directory")
+    directory = config.get(section, 'directory')
     if not os.path.isdir(directory):
         print("Error with config property '{}.directory'".format(section))
         print("Directory '{}' doesn't exist".format(directory))
 
-    commands = config.get(section, "commands")
+    commands = config.get(section, 'commands')
 
     # Execute the shell after all the commands, so that the terminal doesn't
     # exit immediately
     commands = commands + '; exec zsh'
 
-    proc = subprocess.Popen(['gnome-terminal',
+    popen_args = ['gnome-terminal',
         '--working-directory={}'.format(directory),
         '--window-with-profile={}'.format(args['terminal_profile']),
-        '-x', 'sh', '-c', commands])
+        '-x', 'sh', '-c', commands];
+
+    print('commands = {}'.format(commands));
+    print('popen_args = {}'.format(popen_args));
+    proc = subprocess.Popen(popen_args)
