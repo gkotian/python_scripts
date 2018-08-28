@@ -174,6 +174,14 @@ if len(final_list) > 0:
     for server in final_list:
         print('    {}'.format(server.split('.')[0]))
 
+    print('')
+
+    versions_link = 'https://fm.sociomantic.com/fact_values?utf8=%E2%9C%93&search=+fact+%7E+applications%3A%3A{}%3A%3A%2F*%3A%3Aversion'.format(app)
+    if region != 'ALL':
+        versions_link += '+and+host+~+{}-*.sociomantic.net'.format(region)
+
+    print('versions: {}'.format(versions_link))
+
     if args['launch_foreman']:
         link='https://fm.sociomantic.com/hosts?search=class+~+sociomantic%3A%3Aapplication%3A%3A{}'.format(app)
 
