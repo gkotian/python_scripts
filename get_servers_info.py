@@ -174,19 +174,19 @@ if len(final_list) > 0:
     for server in final_list:
         print('    {}'.format(server.split('.')[0]))
 
-if args['launch_foreman']:
-    link='https://fm.sociomantic.com/hosts?search=class+~+sociomantic%3A%3Aapplication%3A%3A{}'.format(app)
+    if args['launch_foreman']:
+        link='https://fm.sociomantic.com/hosts?search=class+~+sociomantic%3A%3Aapplication%3A%3A{}'.format(app)
 
-    if region != 'ALL':
-        link += '+and+location+%3D+{}'.format(region)
+        if region != 'ALL':
+            link += '+and+location+%3D+{}'.format(region)
 
-    proc = subprocess.Popen([browser, link],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (stdout, stderr) = proc.communicate()
+        proc = subprocess.Popen([browser, link],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (stdout, stderr) = proc.communicate()
 
-    print('Launched a new browser tab to get the latest info from foreman')
+        print('Launched a new browser tab to get the latest info from foreman')
 
-    # If there are more than 5 servers, then give the user the option to enter a
-    # csv file for comparison
-    if len(final_list) > 5:
-        csv_file_check(final_list)
+        # If there are more than 5 servers, then give the user the option to enter a
+        # csv file for comparison
+        if len(final_list) > 5:
+            csv_file_check(final_list)
