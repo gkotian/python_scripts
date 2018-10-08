@@ -210,10 +210,10 @@ for root, subdirs, filenames in os.walk(cwd):
 total_files = len(files)
 
 if (total_files == 0):
-    print "No supported files to process. Aborting."
+    print("No supported files to process. Aborting.")
     sys.exit(1)
 
-print "Files to analyse : " + str(total_files)
+print("Files to analyse : " + str(total_files))
 
 files_to_skip = args['skip_count']
 
@@ -222,11 +222,11 @@ if not files_to_skip:
 else:
     files_to_skip = int(files_to_skip)
 
-print "Files to skip    : " + str(files_to_skip)
-print ""
+print("Files to skip    : " + str(files_to_skip))
+print("")
 
 if files_to_skip > total_files:
-    print "Files to skip more than total files. Aborting."
+    print("Files to skip more than total files. Aborting.")
     sys.exit(2)
 
 # Note 'us_english' instead of 'us-english' since the hyphen is automatically converted to an
@@ -261,18 +261,18 @@ for f in files:
         sys.stdout.flush()
 
         if files_to_skip >= files_with_errors:
-            print str(files_with_errors) + ". " + f + " -- skipped"
+            print(str(files_with_errors) + ". " + f + " -- skipped")
             if files_to_skip == files_with_errors:
-                print ""
+                print("")
             continue
 
-        print str(files_with_errors) + ". " + f + ":"
+        print(str(files_with_errors) + ". " + f + ":")
         for e in errors:
-            print "    * " + e
+            print("    * " + e)
             if args['suggest']:
-                print "        ",
-                print valid_words.suggest(e)
-        print ""
+                print("        ",)
+                print(valid_words.suggest(e))
+        print("")
 
         # Note 'non_interactive' instead of 'non-interactive' since the hyphen is automatically
         # converted to an underscore
@@ -281,5 +281,5 @@ for f in files:
 
 update_progress(1.0)
 
-print ""
+print("")
 
