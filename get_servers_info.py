@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
 import argparse
-import os.path
+import os
 import subprocess
 import sys
 
 
 cssh_config_file = os.path.expanduser('~/.clusterssh/clusters')
-browser = '/usr/bin/google-chrome'
+BROWSER_PATH = os.environ.get('BROWSER_PATH', '/usr/bin/google-chrome')
 
 
 def die(msg):
@@ -188,7 +188,9 @@ if len(final_list) > 0:
         if region != 'ALL':
             link += '+and+location+%3D+{}'.format(region)
 
-        proc = subprocess.Popen([browser, link],
+        if not os.path.isfile(BROWSER_PATH):
+            raise ValueError("Browser path '{}' doesn't exist".format(BROWSER_PATH))
+        proc = subprocess.Popen([BROWSER_PATH, link],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (stdout, stderr) = proc.communicate()
 
