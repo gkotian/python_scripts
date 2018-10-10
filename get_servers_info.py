@@ -176,7 +176,7 @@ if len(final_list) > 0:
 
     print('')
 
-    versions_link = 'https://fm.sociomantic.com/fact_values?utf8=%E2%9C%93&search=+fact+%7E+applications%3A%3A{}%3A%3A%2F*%3A%3Aversion'.format(app)
+    versions_link = 'https://fm.sociomantic.com/fact_values?utf8=%E2%9C%93&search=+fact+%7E+applications%3A%3A{}%3A%3A*%3A%3Aversion'.format(app)
     if region != 'ALL':
         versions_link += '+and+host+~+{}-*.sociomantic.net'.format(region)
 
