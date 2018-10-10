@@ -93,7 +93,7 @@ def perform_jenkins_specific_mod(docker_image_name, dockerfile):
 
     shutil.copy2(dockerfile, dockerfile_backup)
 
-    matcher_image_line  = r'^FROM sociomantic(.*)/dlang:v(.*)'
+    matcher_image_line  = r'^FROM sociomantic(.*)/(.*)dlang:v(.*)'
     modification_made = False
 
     with open(dockerfile, 'r') as in_file, open(dockerfile_new, 'w') as out_file:
@@ -103,10 +103,15 @@ def perform_jenkins_specific_mod(docker_image_name, dockerfile):
                 if m.group(1) != '' and m.group(1) != 'tsunami':
                     os.unlink(dockerfile_backup)
                     os.unlink(dockerfile_new)
-                    sys.exit("Only 'sociomantic/dlang' and 'sociomantictsunami/dlang' images are currently supported. Aborting.")
+                    sys.exit("Only 'sociomantic/*' and 'sociomantictsunami/*' images are currently supported. Aborting.")
+
+                if m.group(2) != '' and m.group(2) != 'devel':
+                    os.unlink(dockerfile_backup)
+                    os.unlink(dockerfile_new)
+                    sys.exit("Only '*/dlang' and '*/develdlang' images are currently supported. Aborting.")
 
                 # Modify the line to add the 'xenial-' prefix
-                line = 'FROM sociomantic{}/dlang:xenial-v{}\n'.format(m.group(1), m.group(2))
+                line = 'FROM sociomantic{}/{}dlang:xenial-v{}\n'.format(m.group(1), m.group(2), m.group(3))
                 modification_made = True
 
             out_file.write(line)
@@ -115,9 +120,9 @@ def perform_jenkins_specific_mod(docker_image_name, dockerfile):
         # Replace the Dockerfile with the modified Dockerfile
         shutil.move(dockerfile_new, dockerfile)
     else:
-        # There was no 'sociomantic/dlang' or 'sociomantictsunami/dlang' line at
-        # all in the Dockerfile, which means all the work we did in this
-        # function was a waste.
+        # There was no 'sociomantic[tsunami]/[devel]dlang' line at all in the
+        # Dockerfile, which means all the work we did in this function was a
+        # waste.
         os.unlink(dockerfile_backup)
         os.unlink(dockerfile_new)
         dockerfile_backup = ''
