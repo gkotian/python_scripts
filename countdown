@@ -27,10 +27,8 @@ def seconds_until(time_str):
 
 
 def seconds_in(time_str):
-    # This regular expression should be improved. It currently allows erroneous
-    # input like '24hf' to get through.
     regex = re.compile(
-        r'((?P<hours>\d+?)h)?((?P<minutes>\d+?)m)?((?P<seconds>\d+?)s)?')
+        r'((?P<hours>\d+?)h)?((?P<minutes>\d+?)m)?((?P<seconds>\d+?)s)?$')
 
     time_parts = regex.match(time_str)
     if not time_parts:
