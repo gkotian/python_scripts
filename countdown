@@ -72,25 +72,35 @@ def calculate_seconds(time_str):
         seconds = seconds_in(time_str)
 
     if seconds > 0:
-        print "Counting down '{}' seconds until '{}'".format(seconds,
-            (datetime.now() + timedelta(seconds=seconds))
-            .strftime('%Y-%m-%d %H:%M:%S'))
+        finishing_time = (datetime.now()
+                          + timedelta(seconds=seconds)).strftime('%Y-%m-%d %H:%M:%S')
+
+        print "Counting down {} seconds until {}".format(seconds, finishing_time)
 
     return seconds
 
-# Set up command line arguments
-parser = argparse.ArgumentParser(usage='%(prog)s [ARGUMENTS]',
-    description='Start a countdown for the given time duration')
-parser.add_argument('time',
-    help='time until or time-duration for which the countdown should run')
-parser.add_argument('message', nargs='?', default='Countdown complete!',
-    help='message to be displayed when the countdown completes')
-args = vars(parser.parse_args())
 
-seconds = calculate_seconds(args['time'])
+# Set up command line arguments
+parser = argparse.ArgumentParser(
+    usage='%(prog)s [ARGUMENTS]',
+    description='Start a countdown for the given time duration'
+)
+parser.add_argument(
+    'time',
+    help='time until or time-duration for which the countdown should run'
+)
+parser.add_argument(
+    'message',
+    nargs='?',
+    default='Countdown complete!',
+    help='message to be displayed when the countdown completes'
+)
+args = parser.parse_args()
+
+seconds = calculate_seconds(args.time)
 
 if seconds < 0:
-    print "Unable to parse time duration '{}'".format(args['time'])
+    print "Unable to parse time duration '{}'".format(args.time)
     sys.exit(1)
 
 try:
