@@ -75,7 +75,7 @@ def calculate_seconds(time_str):
         finishing_time = (datetime.now()
                           + timedelta(seconds=seconds)).strftime('%Y-%m-%d %H:%M:%S')
 
-        print "Counting down {} seconds until {}".format(seconds, finishing_time)
+        print("Counting down {} seconds until {}".format(seconds, finishing_time))
 
     return seconds
 
@@ -100,7 +100,7 @@ args = parser.parse_args()
 seconds = calculate_seconds(args.time)
 
 if seconds < 0:
-    print "Unable to parse time duration '{}'".format(args.time)
+    print("Unable to parse time duration '{}'".format(args.time))
     sys.exit(1)
 
 try:
@@ -113,11 +113,11 @@ try:
         sys.stdout.write("\r\033[K")
         seconds -= 1
 
-    print "Countdown complete!"
+    print("Countdown complete!")
     subprocess.call(['xmessage', args.message])
 except KeyboardInterrupt:
     sys.stdout.write("\r\033[K")
     sys.stdout.write("%02d:%02d:%02d" % (h, m, s))
     sys.stdout.flush()
 
-    print('\nCountdown stopped manually')
+    print("\nCountdown stopped manually")
