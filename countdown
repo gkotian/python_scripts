@@ -93,14 +93,21 @@ if seconds < 0:
     print "Unable to parse time duration '{}'".format(args['time'])
     sys.exit(1)
 
-while seconds > 0:
-    m, s = divmod(seconds, 60)
-    h, m = divmod(m, 60)
+try:
+    while seconds > 0:
+        m, s = divmod(seconds, 60)
+        h, m = divmod(m, 60)
+        sys.stdout.write("%02d:%02d:%02d" % (h, m, s))
+        sys.stdout.flush()
+        sleep(1.0)
+        sys.stdout.write("\r\033[K")
+        seconds -= 1
+
+    print "Countdown complete!"
+    subprocess.call(['xmessage', args.message])
+except KeyboardInterrupt:
+    sys.stdout.write("\r\033[K")
     sys.stdout.write("%02d:%02d:%02d" % (h, m, s))
     sys.stdout.flush()
-    sleep(1.0)
-    sys.stdout.write("\r\033[K")
-    seconds -= 1
 
-print "Countdown complete!"
-subprocess.call(['xmessage', args['message']])
+    print('\nCountdown stopped manually')
