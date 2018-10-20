@@ -131,7 +131,7 @@ def analyseFile(filename):
                     is_big_comment_marker = True
 
             if is_big_comment_marker:
-                # print 'inspecting line ' + str(line_num) + ' (indent = ' + str(indent) + ')'
+                # print('inspecting line ' + str(line_num) + ' (indent = ' + # str(indent) + ')')
                 errors_in_line = []
                 errors_in_line = inspect_big_comment_marker(orig_line, indent)
 
@@ -213,7 +213,7 @@ def getFiles(cwd, filename):
             line_num += 1
             line = line.strip()
             if not os.path.isfile(line):
-                print ("File '" + line + "' (line " + str(line_num) + " in " + filename +
+                print("File '" + line + "' (line " + str(line_num) + " in " + filename +
                     ") doesn't exist. Will ignore.")
             else:
                 if not os.path.isabs(line):
@@ -241,25 +241,25 @@ files = set()
 
 if os.path.isfile(cwd + "/restrictlist.txt"):
     files = getFiles(cwd, "restrictlist.txt")
-    print "Files to restrict   : " + str(len(files))
+    print("Files to restrict   : " + str(len(files)))
 else:
     for root, subdirs, filenames in os.walk(cwd):
         for filename in fnmatch.filter(filenames, "*.d"):
             files.add(os.path.join(root, filename))
-    print "Total D files found : " + str(len(files))
+    print("Total D files found : " + str(len(files)))
 
 files_to_skip = getFiles(cwd, "skiplist.txt")
-print "Files to skip       : " + str(len(files_to_skip))
+print("Files to skip       : " + str(len(files_to_skip)))
 files -= files_to_skip
 
 if not files:
-    print "No D files to analyse. Aborting."
+    print("No D files to analyse. Aborting.")
     sys.exit(2)
 
 total_files = len(files)
 
-print "Files to analyse    : " + str(total_files)
-print ""
+print("Files to analyse    : " + str(total_files))
+print("")
 
 tmp_directory = tempfile.mkdtemp()
 
@@ -280,18 +280,18 @@ for f in files:
         lines_to_fix = set()
 
         removeProgressBar()
-        print f + ':'
+        print(f + ':')
 
         for line in sorted(lines_with_errors):
-            print "    * line " + str(line)
+            print("    * line " + str(line))
             for error in lines_with_errors[line]:
                 if error == 'incorrect number of leading spaces (expected 4, found 5)':
                     lines_to_fix.add(line)
-                    print "        - <auto fixed>"
+                    print("        - <auto fixed>")
                 else:
-                    print "        - " + error
+                    print("        - " + error)
 
-        print ''
+        print('')
 
         if lines_to_fix:
             lines_auto_fixed += len(lines_to_fix)
@@ -309,10 +309,10 @@ for f in files:
 
 removeProgressBar()
 
-print 'Number of files analysed: ' + str(total_files)
-print 'Files with errors: ' + str(files_with_errors)
+print('Number of files analysed: ' + str(total_files))
+print('Files with errors: ' + str(files_with_errors))
 if lines_auto_fixed > 0:
-    print ('Lines automatically fixed: ' + str(lines_auto_fixed) + ' (in ' +
+    print('Lines automatically fixed: ' + str(lines_auto_fixed) + ' (in ' +
         str(files_with_auto_fixed_lines) + ' files)')
 
 shutil.rmtree(tmp_directory)
