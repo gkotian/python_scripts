@@ -60,7 +60,7 @@ def getCompileCommand(cwd):
     submods = []
 
     if not os.path.isdir(cwd + "/submodules"):
-        print "'" + cwd + "/submodules' doesn't exist. Assuming no submodules."
+        print("'" + cwd + "/submodules' doesn't exist. Assuming no submodules.")
     else:
         submods_dir = cwd + "/submodules"
         for item in os.listdir(submods_dir):
@@ -650,7 +650,7 @@ args = vars(parser.parse_args())
 cwd = os.getcwd()
 
 if not os.path.isdir(cwd + "/src"):
-    print "'" + cwd + "/src' doesn't exist. Aborting."
+    print("'" + cwd + "/src' doesn't exist. Aborting.")
     sys.exit(1)
 
 files_to_skip = set()
@@ -660,7 +660,7 @@ if os.path.isfile(cwd + "/skiplist.txt"):
         for line in in_file:
             line = line.strip()
             if not os.path.isfile(line):
-                print "Skiplist file '" + line + "' not found. Will ignore."
+                print("Skiplist file '" + line + "' not found. Will ignore.")
             else:
                 if not os.path.isabs(line):
                     line = cwd + "/" + line
@@ -675,39 +675,39 @@ for root, subdirs, filenames in os.walk(cwd + "/src"):
             files.append(os.path.join(root, filename))
 
 if (len(files) == 0):
-    print "No D files to analyse. Aborting."
+    print("No D files to analyse. Aborting.")
     sys.exit(2)
 
 total_files = len(files) + len(files_to_skip)
 
-print "Total D files found : " + str(total_files)
-print "Files to skip       : " + str(len(files_to_skip))
-print "Files to analyse    : " + str(len(files))
-print ""
+print("Total D files found : " + str(total_files))
+print("Files to skip       : " + str(len(files_to_skip)))
+print("Files to analyse    : " + str(len(files)))
+print("")
 
 compile_command = getCompileCommand(cwd)
 
-print "Making a first-pass check to see if all files compile ..."
+print("Making a first-pass check to see if all files compile ...")
 
 failed_file = makeFirstPassCheck(files, compile_command)
 sys.stdout.write("\033[1A") # Go up one line
 
 if not failed_file:
-    print "Making a first-pass check to see if all files compile ... DONE"
-    print "Starting imports analysis now..."
-    print ""
+    print("Making a first-pass check to see if all files compile ... DONE")
+    print("Starting imports analysis now...")
+    print("")
 else:
-    print "Making a first-pass check to see if all files compile ... FAILED"
-    print ""
+    print("Making a first-pass check to see if all files compile ... FAILED")
+    print("")
 
-    print "File '" + failed_file + "' failed to compile."
-    print "Please fix this manually before attempting again."
-    print "Build command used:"
+    print("File '" + failed_file + "' failed to compile.")
+    print("Please fix this manually before attempting again.")
+    print("Build command used:")
     for p in compile_command: print p,
-    print failed_file
-    print ""
+    print(failed_file)
+    print("")
 
-    print "Aborting."
+    print("Aborting.")
     sys.exit(3)
 
 tmp_directory = tempfile.mkdtemp()
@@ -736,37 +736,37 @@ for f in files:
         removeProgressBar()
 
         if "BUILD FAILURE" in errors:
-            print ("One or more changes made in one of the " + str(files_modified) +
-                   " modified files has caused a build failure in:")
-            print "    " + f
-            print ""
+            print("One or more changes made in one of the " + str(files_modified) +
+                  " modified files has caused a build failure in:")
+            print("    " + f)
+            print("")
 
-            print "Build command used:"
+            print("Build command used:")
             for p in compile_command: print p,
-            print f
-            print ""
+            print(f)
+            print("")
 
-            print ("Please identify this change(s), revert only the relevant change(s), and add " +
-                   "that file to the skiplist.")
-            print "This will prevent the same modification(s) from being performed in the next run."
-            print ""
+            print("Please identify this change(s), revert only the relevant change(s), and add " +
+                  "that file to the skiplist.")
+            print("This will prevent the same modification(s) from being performed in the next run.")
+            print("")
 
-            print "Aborting."
+            print("Aborting.")
             sys.exit(4)
 
         files_with_suggestions += 1
 
-        print f + ":"
+        print(f + ":")
         for e in errors:
-            print e
-        print ""
+            print(e)
+        print("")
 
 removeProgressBar()
 
-print ""
-print "Number of files analysed: " + str(total_files)
-print "Number of files automatically modified: " + str(files_modified)
-print "Number of files with suggestions: " + str(files_with_suggestions)
+print("")
+print("Number of files analysed: " + str(total_files))
+print("Number of files automatically modified: " + str(files_modified))
+print("Number of files with suggestions: " + str(files_with_suggestions))
 
 shutil.rmtree(tmp_directory)
 
