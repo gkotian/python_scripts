@@ -20,8 +20,8 @@ for section in config.sections():
 
     directory = config.get(section, "directory")
     if not os.path.isdir(directory):
-        print "Error with config property '{}.directory'".format(section)
-        print "Directory '{}' doesn't exist".format(directory)
+        print("Error with config property '{}.directory'".format(section))
+        print("Directory '{}' doesn't exist".format(directory))
 
     commands = config.get(section, "commands")
 
