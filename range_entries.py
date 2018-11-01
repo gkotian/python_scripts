@@ -4,10 +4,9 @@ import sys
 
 
 def print_array(bit_stream):
-    # MaxVendorId starts in the middle of byte 19
-    byte_num = 19
-
+    byte_num = 0
     array = []
+
     while len(bit_stream) > 0:
         n = int("".join(bit_stream[0:8]), 2)
         array.append(n)
@@ -21,19 +20,39 @@ def print_array(bit_stream):
 # ---- Start here --------------------------------
 bit_stream = []
 
-# Pre-add 4 zeroes (the last 4 bits from `PurposesAllowed`)
-bit_stream += list("0000")
+# Hard-code `Version = 1`
+bit_stream += list("000001")
+
+# Hard-code `Created = 15100821554`
+bit_stream += list("001110000100000101000100000000110010")
+
+# Hard-code `LastUpdated = 15100821554`
+bit_stream += list("001110000100000101000100000000110010")
+
+# Hard-code `CmpId = 7`
+bit_stream += list("000000000111")
+
+# Hard-code `CmpVersion = 1`
+bit_stream += list("000000000001")
+
+# Hard-code `ConsentScreen = 3`
+bit_stream += list("000011")
+
+# Hard-code `ConsentLanguage = "EN" (E=4, N13)`
+bit_stream += list("000100001101")
+
+# Hard-code `VendorListVersion = 8`
+bit_stream += list("000000001000")
+
+# Hard-code `PurposesAllowed = 14680064`
+bit_stream += list("111000000000000000000000")
 
 max_vendor_id = int(input("MaxVendorId: "))
 bit_stream += list(bin(max_vendor_id)[2:].zfill(16))
 
-# encoding_type = int(input("EncodingType (BitField = 0, Range = 1): "))
-# bit_stream += list(bin(encoding_type)[2:].zfill(1))
-# We assume `EncodingType` as Range, so simply add a 1
+# Hard-code `EncodingType = 1`
 bit_stream += list("1")
 
-# default_consent = int(input("DefaultConsent: "))
-# bit_stream += list(bin(default_consent)[2:].zfill(1))
 # For now set `DefaultConsent` to 0 (later we'll also use 1)
 bit_stream += list("0")
 
@@ -58,6 +77,14 @@ for i in range(num_entries):
         print("WTF?!!")
         sys.exit(0)
 
+# Add padding bits at the end if necessary
+# (such that the length of the bit stream is a multiple of 8)
+num_padding_bits = 8 - (len(bit_stream) % 8)
+if num_padding_bits < 8:
+    # Padding bits are needed
+    for i in range(num_padding_bits):
+        bit_stream += list("0")
+
 # Save a copy that we can later modify
 bit_stream2 = bit_stream
 
@@ -65,7 +92,7 @@ print("With DefaultConsent = 0:")
 print_array(bit_stream)
 
 # Now set `DefaultConsent` to 1
-bit_stream2[21] = '1'
+bit_stream2[173] = '1'
 
 print("")
 print("")
