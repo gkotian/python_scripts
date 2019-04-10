@@ -84,57 +84,6 @@ def get_docker_details(cmdline_dockerfile):
     sys.exit(1)
 
 
-def perform_jenkins_specific_mod(docker_image_name, dockerfile):
-    # Create two temporary files - one is the original Dockerfile before
-    # modifications, the other is to perform the necessary modifications
-    tempfile_suffix = '-' + docker_image_name + '-Dockerfile'
-    dockerfile_backup = tempfile.mkstemp(suffix=tempfile_suffix)[1]
-    dockerfile_new    = tempfile.mkstemp(suffix=tempfile_suffix)[1]
-
-    shutil.copy2(dockerfile, dockerfile_backup)
-
-    matcher_image_line  = r'^FROM sociomantic(.*)/(.*)dlang:v(.*)'
-    modification_made = False
-
-    with open(dockerfile, 'r') as in_file, open(dockerfile_new, 'w') as out_file:
-        for line in in_file:
-            m = re.search(matcher_image_line, line)
-            if m:
-                if m.group(1) != '' and m.group(1) != 'tsunami':
-                    os.unlink(dockerfile_backup)
-                    os.unlink(dockerfile_new)
-                    sys.exit("Only 'sociomantic/*' and 'sociomantictsunami/*' images are currently supported. Aborting.")
-
-                if m.group(2) != '' and m.group(2) != 'devel':
-                    os.unlink(dockerfile_backup)
-                    os.unlink(dockerfile_new)
-                    sys.exit("Only '*/dlang' and '*/develdlang' images are currently supported. Aborting.")
-
-                # Modify the line to add the 'xenial-' prefix
-                line = 'FROM sociomantic{}/{}dlang:xenial-v{}\n'.format(m.group(1), m.group(2), m.group(3))
-                modification_made = True
-
-            out_file.write(line)
-
-    if modification_made:
-        # Replace the Dockerfile with the modified Dockerfile
-        shutil.move(dockerfile_new, dockerfile)
-    else:
-        # There was no 'sociomantic[tsunami]/[devel]dlang' line at all in the
-        # Dockerfile, which means all the work we did in this function was a
-        # waste.
-        os.unlink(dockerfile_backup)
-        os.unlink(dockerfile_new)
-        dockerfile_backup = ''
-
-    return dockerfile_backup
-
-
-def revert_jenkins_specific_mod(dockerfile_backup, dockerfile):
-    if dockerfile_backup != '':
-        shutil.move(dockerfile_backup, dockerfile)
-
-
 parser = argparse.ArgumentParser(
     description='Script to launch a docker container')
 parser.add_argument('-d', '--dockerfile', nargs='?', required=False, default='',
@@ -147,14 +96,10 @@ dockerfile, docker_image_name = get_docker_details(args['dockerfile'])
 print('Docker image name: {}'.format(docker_image_name))
 print('Dockerfile: {}'.format(dockerfile))
 
-dockerfile_backup = perform_jenkins_specific_mod(docker_image_name, dockerfile)
-
 command = ['docker', 'build', '-t']
 command.append(docker_image_name)
 command.append(os.path.dirname(dockerfile))
 subprocess.run(command)
-
-revert_jenkins_specific_mod(dockerfile_backup, dockerfile)
 
 # If we're in a git repo, we mount the top-level of the git repo, or else we
 # just the mount the current directory
