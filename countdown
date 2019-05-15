@@ -103,21 +103,28 @@ if seconds < 0:
     print("Unable to parse time duration '{}'".format(args.time))
     sys.exit(1)
 
-try:
-    while seconds > 0:
-        m, s = divmod(seconds, 60)
-        h, m = divmod(m, 60)
+while 1:
+    try:
+        while seconds > 0:
+            m, s = divmod(seconds, 60)
+            h, m = divmod(m, 60)
+            sys.stdout.write("%02d:%02d:%02d" % (h, m, s))
+            sys.stdout.flush()
+            sleep(1.0)
+            sys.stdout.write("\r\033[K")
+            seconds -= 1
+
+        print("Countdown complete!")
+        ret = subprocess.call(['xmessage', '-buttons', 'Okay:0,Snooze 10 minutes:1', args.message])
+        if ret == 0:
+            break
+
+        print("Snoozing for 10 minutes...")
+        seconds = 600
+    except KeyboardInterrupt:
+        sys.stdout.write("\r\033[K")
         sys.stdout.write("%02d:%02d:%02d" % (h, m, s))
         sys.stdout.flush()
-        sleep(1.0)
-        sys.stdout.write("\r\033[K")
-        seconds -= 1
 
-    print("Countdown complete!")
-    subprocess.call(['xmessage', args.message])
-except KeyboardInterrupt:
-    sys.stdout.write("\r\033[K")
-    sys.stdout.write("%02d:%02d:%02d" % (h, m, s))
-    sys.stdout.flush()
-
-    print("\nCountdown stopped manually")
+        print("\nCountdown stopped manually")
+        break
