@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import re
@@ -40,7 +40,7 @@ def seconds_in(time_str):
     # `{'hours': '2', 'seconds': '50', 'minutes': '3'}`
 
     time_params = {}
-    for (name, param) in time_parts.iteritems():
+    for (name, param) in time_parts.items():
         if param:
             time_params[name] = int(param)
     seconds = int(timedelta(**time_params).total_seconds())
