@@ -10,6 +10,16 @@ from time import sleep
 
 
 def seconds_until(time_str):
+    """
+    Calculates the number of seconds remaining until the time specified by the
+    given string is reached.
+
+    Args:
+        time_str: string representing the target time.
+
+    Returns:
+        The calculated number of seconds, or -1 in case of error.
+    """
     try:
         target_time = time(*(map(int, time_str.split(':'))))
     except ValueError:
@@ -27,6 +37,16 @@ def seconds_until(time_str):
 
 
 def seconds_in(time_str):
+    """
+    Calculates the number of seconds corresponding to the time duration
+    specified by the given string.
+
+    Args:
+        time_str: string representing the time duration.
+
+    Returns:
+        The calculated number of seconds, or -1 in case of error.
+    """
     regex = re.compile(
         r'((?P<hours>\d+?)h)?((?P<minutes>\d+?)m)?((?P<seconds>\d+?)s)?$')
 
@@ -56,6 +76,17 @@ def seconds_in(time_str):
 
 
 def calculate_seconds(time_str):
+    """
+    Calculates the number of seconds corresponding to the given string. The
+    given string can either be a target time (e.g. 20:30) or a string
+    representing a time duration (e.g. 2h45m).
+
+    Args:
+        time_str: string representing the time or time duration.
+
+    Returns:
+        The calculated number of seconds.
+    """
     # Plain integers are assumed to be seconds
     try:
         seconds = int(time_str)
