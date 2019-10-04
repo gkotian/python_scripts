@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 
 ################################################################################
@@ -29,7 +29,7 @@ def die(msg):
     sys.exit(1)
 
 
-tmp_file = tempfile.NamedTemporaryFile()
+tmp_file = tempfile.NamedTemporaryFile(mode='w')
 tmp_file.write('<details>\n')
 tmp_file.write('<summary>Diff</summary>\n')
 
